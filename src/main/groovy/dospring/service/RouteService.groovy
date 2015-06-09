@@ -67,7 +67,15 @@ class RouteService {
                 ])
             }
         }
-        // find routes that differ in intermediate point only. Leave only one - where this point is farther from the start
+
+        dropSimilarRoutes(routes, 0)
+    }
+
+    // find routes that differ in intermediate point only. Leave only one - where this point is farther from the start
+    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes, int level) {
+        if (level < 0) {
+            return routes
+        }
         List<CalculatedRoute> routesToRemove = []
         for (int i = 0; i < routes.size() - 1; i++) {
             def r1 = routes[i]
@@ -77,19 +85,20 @@ class RouteService {
             def similar = []
             for (int j = i + 1; j < routes.size(); j++) {
                 def r2 = routes[j]
-                if (    routesSimilar(r1.routeChunks[0].route, r2.routeChunks[0].route) &&
-                        routesSimilar(r1.routeChunks[1].route, r2.routeChunks[1].route)) {
+                if (r1.routeChunks.size() < level + 1 && r2.routeChunks.size() < level + 1 &&
+                        routesSimilar(r1.routeChunks[level  ].route, r2.routeChunks[level  ].route) &&
+                        routesSimilar(r1.routeChunks[level+1].route, r2.routeChunks[level+1].route)) {
+
                     similar << r2
                 }
             }
             if (!similar.empty) {
                 similar << r1
-                def winner = similar.max {CalculatedRoute r -> r.routeChunks[0].route.size() * r.routeChunks[1].route.size()}
+                def winner = similar.max { CalculatedRoute r -> r.routeChunks[level].route.size() * r.routeChunks[level+1].route.size() }
                 similar -= winner
                 routesToRemove += similar
             }
         }
-
         routes - routesToRemove
     }
 
@@ -154,6 +163,8 @@ class RouteService {
         // two optimizations should be here:
         // 1. eliminate routes with same route names but different stops - look for stops with the same condition as in 1-switch version
         // 2. remove subsets - 1, 2, (4,5) should have priority over 1, 2, 5 or 1, 2, 4, stops do not matter this time
+        routes = dropSimilarRoutes(routes, 0)
+        routes = dropSimilarRoutes(routes, 1)
         routes
     }
 }

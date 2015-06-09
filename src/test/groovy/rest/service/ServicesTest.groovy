@@ -110,7 +110,6 @@ class ServicesTest {
 
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stops0, stops3)
 
-        assert 1 == routes.size()
         assert [[["R1"], ["R2"]]] == routes.routeChunks.route.name
     }
 
