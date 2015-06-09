@@ -124,6 +124,16 @@ class ServicesTest {
     }
 
     @Test
+    void "test that 1-switch version does not out no-switch paths"() {
+        def stops0 = stopService.findNearestStops(point0)
+        def stops2 = stopService.findNearestStops(point2)
+
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stops0, stops2)
+
+        assert routes.empty
+    }
+
+    @Test
     @Ignore
     void drawRoutes() {
         def drawer = new RouteDrawer()
@@ -134,6 +144,8 @@ class ServicesTest {
     TransportStorage storage
     RouteService routeService
     StopService stopService
+
+    // TODO: think of the test case where we may eliminate similarity only at the end of the route for the 2-switch version
 
     @Before
     void mockTransportProvider() {

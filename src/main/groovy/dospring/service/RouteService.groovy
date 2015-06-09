@@ -58,7 +58,7 @@ class RouteService {
             Collection<Route> routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
             Collection<Route> routes2 = routesEnd  .findAll { r -> r.isAfter(p2, p3) }
             if (routes1.intersect(routes2)) {
-                return // we already have found this route in no-switch version
+                return // we already have covered this route in no-switch version
             }
             if (routes1 && routes2) {
                 routes << new CalculatedRoute([
@@ -68,33 +68,36 @@ class RouteService {
             }
         }
 
-        dropSimilarRoutes(routes, 0)
+        dropSimilarRoutes(routes)
     }
 
     // find routes that differ in intermediate point only. Leave only one - where this point is farther from the start
-    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes, int level) {
-        if (level < 0) {
-            return routes
-        }
+    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes) {
         List<CalculatedRoute> routesToRemove = []
+        List<CalculatedRoute> processed = []
         for (int i = 0; i < routes.size() - 1; i++) {
             def r1 = routes[i]
-            if (routesToRemove.contains(r1)) {
+            if (processed.contains(r1)) {
                 continue
             }
             def similar = []
             for (int j = i + 1; j < routes.size(); j++) {
                 def r2 = routes[j]
-                if (r1.routeChunks.size() < level + 1 && r2.routeChunks.size() < level + 1 &&
-                        routesSimilar(r1.routeChunks[level  ].route, r2.routeChunks[level  ].route) &&
-                        routesSimilar(r1.routeChunks[level+1].route, r2.routeChunks[level+1].route)) {
+                if (r1.routeChunks.size() != r2.routeChunks.size()) {
+                    continue
+                }
+                if ((0..<(r1.routeChunks.size())).every {Integer idx ->
+                    routesSimilar(r1.routeChunks[idx].route, r2.routeChunks[idx].route)}) {
 
                     similar << r2
                 }
             }
             if (!similar.empty) {
                 similar << r1
-                def winner = similar.max { CalculatedRoute r -> r.routeChunks[level].route.size() * r.routeChunks[level+1].route.size() }
+                r1.routeChunks.collect{it.route.size()}.inject(1, {a,b->a*b})
+                processed += similar
+                // max by multiplication of the |routes|
+                def winner = similar.max { CalculatedRoute r -> r.routeChunks.collect{it.route.size()}.inject(0, {a,b->a*b}) }
                 similar -= winner
                 routesToRemove += similar
             }
@@ -151,6 +154,9 @@ class RouteService {
             Collection<Route> routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
             Collection<Route> routes2 = routesAll  .findAll { r -> r.isAfter(p2, p3) }
             Collection<Route> routes3 = routesEnd  .findAll { r -> r.isAfter(p3, p4) }
+            if (routes1.intersect(routes2) || routes2.intersect(routes3) || routes1.intersect(routes3)) {
+                return // already have this route on 1-switch or 0-switch versions
+            }
             if (routes1 && routes2 && routes3) {
                 routes << new CalculatedRoute([
                         new RouteChunk(routes1, p1, p2),
@@ -163,8 +169,7 @@ class RouteService {
         // two optimizations should be here:
         // 1. eliminate routes with same route names but different stops - look for stops with the same condition as in 1-switch version
         // 2. remove subsets - 1, 2, (4,5) should have priority over 1, 2, 5 or 1, 2, 4, stops do not matter this time
-        routes = dropSimilarRoutes(routes, 0)
-        routes = dropSimilarRoutes(routes, 1)
+        routes = dropSimilarRoutes(routes)
         routes
     }
 }
