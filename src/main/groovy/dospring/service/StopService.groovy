@@ -1,5 +1,5 @@
 package dospring.service
-import dospring.storage.parser.OsmTransportStorage
+import dospring.storage.parser.TransportStorage
 import model.Point
 import model.Stop
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,7 +13,7 @@ class StopService {
     double maxDistance
 
     @Autowired
-    OsmTransportStorage transportStorage
+    TransportStorage transportStorage
 
     Stop findNearestStop(Point start) {
         def nearestStop = transportStorage.stops.min { it - start }

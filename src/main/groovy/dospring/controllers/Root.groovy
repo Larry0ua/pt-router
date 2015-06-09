@@ -2,7 +2,7 @@ package dospring.controllers
 
 import dospring.service.RouteService
 import dospring.service.StopService
-import dospring.storage.parser.OsmTransportStorage
+import dospring.storage.parser.TransportStorage
 import model.Point
 import model.Route
 import model.Stop
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 class Root {
 
     @Autowired
-    OsmTransportStorage transportStorage
+    TransportStorage transportStorage
 
     @Autowired
     StopService stopService
@@ -65,7 +65,7 @@ class Root {
             Collection<Stop> stop2 = stopService.findNearestStops(to).take(4).toSet()
 
             Set<Route> available = []
-            routeService.calculateRoutes(stop1, stop2).collect { "$it.name $it.id\n" }
+            routeService.findSimpleRoute(stop1, stop2).collect { "$it.name $it.id\n" }
         } else {
             "No route for city $city yet!"
         }

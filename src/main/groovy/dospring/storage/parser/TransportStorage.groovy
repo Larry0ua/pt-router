@@ -11,7 +11,7 @@ import javax.annotation.PostConstruct
 
 @Component
 @Scope() // singleton
-class OsmTransportStorage {
+class TransportStorage {
 
     Collection<Route> routes
     Collection<Stop> stops

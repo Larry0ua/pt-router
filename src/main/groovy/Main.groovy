@@ -3,13 +3,13 @@ import dospring.processor.matrix.MatrixProcess
 import model.Point
 import model.Route
 import model.Stop
-import dospring.storage.parser.OsmTransportStorage
+import dospring.storage.parser.TransportStorage
 
 //def filename = "D:\\some_transport.osm"
 def filename = Main.classLoader.getResource("transport_ch.osm")
 
 
-def parser = new OsmTransportStorage()
+def parser = new TransportStorage()
 parser.init(filename)
 
 def draw(Collection<Route> routes) {
@@ -24,9 +24,9 @@ def matrix = process.prepareMatrix(parser.routes)
 
 Collection<Stop> allStops = parser.stops
 
-Point point1 = new Point(lat:48.26892, lon:25.92709) // Майдан
-Point point2 = new Point(lat:48.28331, lon:25.97252) // Фастівська
-Point point3 = new Point(lat:48.28972, lon:25.95090) // Міст
+Point point1 = new Point(lat:48.26892, lon:25.92709) // пїЅпїЅпїЅпїЅпїЅпїЅ
+Point point2 = new Point(lat:48.28331, lon:25.97252) // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+Point point3 = new Point(lat:48.28972, lon:25.95090) // МіпїЅпїЅ
 
 Collection<Stop> stop1 = allStops.findAll({it - point1 < 500})
 Collection<Stop> stop2 = allStops.findAll({it - point3 < 500})

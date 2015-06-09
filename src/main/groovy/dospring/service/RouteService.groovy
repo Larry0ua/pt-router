@@ -1,7 +1,7 @@
 package dospring.service
 import dospring.controllers.model.CalculatedRoute
 import dospring.controllers.model.RouteChunk
-import dospring.storage.parser.OsmTransportStorage
+import dospring.storage.parser.TransportStorage
 import model.Route
 import model.Stop
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service
 class RouteService {
 
     @Autowired
-    OsmTransportStorage transportStorage
+    TransportStorage transportStorage
 
 //    List<CalculatedRoute>
 
-    List<CalculatedRoute> calculateRoutes(Collection<Stop> from, Collection<Stop> to) {
+    List<CalculatedRoute> findSimpleRoute(Collection<Stop> from, Collection<Stop> to) {
         List<CalculatedRoute> routes = []
         from?.each { f ->
             to?.each { t ->
@@ -29,7 +29,7 @@ class RouteService {
         return mergeRoutes(routes)
     }
 
-    List<CalculatedRoute> complexCalculateRoutes(Collection<Stop> from, Collection<Stop> to) {
+    List<CalculatedRoute> findRouteWithOneSwitch(Collection<Stop> from, Collection<Stop> to) {
 
         // no route if nulls or empty lists are passed
         if (!from || !to) {

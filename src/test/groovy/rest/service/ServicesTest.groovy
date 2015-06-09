@@ -3,7 +3,7 @@ import dospring.controllers.model.CalculatedRoute
 import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
 import dospring.service.StopService
-import dospring.storage.parser.OsmTransportStorage
+import dospring.storage.parser.TransportStorage
 import dospring.storage.parser.TransportDataProvider
 import drawing.RouteDrawer
 import model.Point
@@ -40,7 +40,7 @@ class ServicesTest {
         def stops1 = stopService.findNearestStops(point1)
         def stops2 = stopService.findNearestStops(point2)
 
-        List<CalculatedRoute> routes = routeService.calculateRoutes(stops1, stops2)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(stops1, stops2)
 
         assert routes.routeChunks.every{it.size() == 1}
         assert [[["R1", "R2"]]] == routes.routeChunks.route.name
@@ -51,27 +51,27 @@ class ServicesTest {
         def stops1 = stopService.findNearestStops(point1)
         def stops4 = stopService.findNearestStops(point4)
 
-        List<CalculatedRoute> routes = routeService.calculateRoutes(stops1, stops4)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(stops1, stops4)
 
         assert [[["R2"]]] == routes.routeChunks.route.name
     }
 
     @Test
-    void "test route with one route change"() {
+    void "test route with one route switch"() {
         def stop2 = stopService.findNearestStops(point2)
         def stop5 = stopService.findNearestStops(point5)
 
-        List<CalculatedRoute> routes = routeService.complexCalculateRoutes(stop2, stop5)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stop2, stop5)
 
         assert [[["R2"], ["R3"]]] == routes.routeChunks.route.name
     }
 
     @Test
-    void "test longer route with one route change"() {
+    void "test longer route with one route swtich"() {
         def stop1 = stopService.findNearestStops(point1)
         def stop8 = stopService.findNearestStops(point8)
 
-        List<CalculatedRoute> routes = routeService.complexCalculateRoutes(stop1, stop8)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stop1, stop8)
 
         // by 2, then by 5 - should be eliminated
         // by 2, then by 4 or 5
@@ -79,15 +79,15 @@ class ServicesTest {
     }
 
     @Test
-    void "test that path is not found with zero or one change"() {
+    void "test that path is not found with zero or one swtich"() {
         def stop6 = stopService.findNearestStops(point6)
         def stop8 = stopService.findNearestStops(point8)
 
-        List<CalculatedRoute> routes = routeService.calculateRoutes(stop6, stop8)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(stop6, stop8)
 
         assert routes.empty
 
-        routes = routeService.complexCalculateRoutes(stop6, stop8)
+        routes = routeService.findRouteWithOneSwitch(stop6, stop8)
 
         assert routes.empty
 
@@ -98,17 +98,17 @@ class ServicesTest {
         def stop2 = stopService.findNearestStops(point2)
         def stop5 = stopService.findNearestStops(point5)
 
-        List<CalculatedRoute> routes = routeService.calculateRoutes(stop2, stop5)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(stop2, stop5)
 
         assert routes.empty
     }
 
     @Test
-    void "test routes are not duplicated when there are more than one possible point to change"() {
+    void "test routes are not duplicated when there are more than one possible point to do a swtich"() {
         def stops0 = stopService.findNearestStops(point0)
         def stops3 = stopService.findNearestStops(point3)
 
-        List<CalculatedRoute> routes = routeService.complexCalculateRoutes(stops0, stops3)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stops0, stops3)
 
         assert 1 == routes.size()
         assert [[["R1"], ["R2"]]] == routes.routeChunks.route.name
@@ -122,14 +122,14 @@ class ServicesTest {
         storage.routes.each {drawer.drawRoute(it, "${it.id}.png")}
     }
 
-    OsmTransportStorage storage
+    TransportStorage storage
     RouteService routeService
     StopService stopService
 
     @Before
-    void mockTransportStorage() {
+    void mockTransportProvider() {
         if (storage == null) {
-            OsmTransportStorage initialized = new OsmTransportStorage(
+            TransportStorage initialized = new TransportStorage(
                     matrixProcess: new MatrixProcess(),
                     maxDistance: 2000,
                     filename: "transport_ch.osm", // not used - all data is from provider below
