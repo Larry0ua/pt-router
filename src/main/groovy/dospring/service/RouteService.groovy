@@ -77,10 +77,8 @@ class RouteService {
             def similar = []
             for (int j = i + 1; j < routes.size(); j++) {
                 def r2 = routes[j]
-                if (r1.routeChunks[0].start == r2.routeChunks[0].start &&
-                        intersecting(r1.routeChunks[0].route, r2.routeChunks[0].route) &&
-                        intersecting(r1.routeChunks[1].route, r2.routeChunks[1].route) &&
-                        r1.routeChunks[1].end == r2.routeChunks[1].end) {
+                if (    routesSimilar(r1.routeChunks[0].route, r2.routeChunks[0].route) &&
+                        routesSimilar(r1.routeChunks[1].route, r2.routeChunks[1].route)) {
                     similar << r2
                 }
             }
@@ -95,7 +93,7 @@ class RouteService {
         routes - routesToRemove
     }
 
-    static boolean intersecting(List<Route> r1, List<Route> r2) {
+    static boolean routesSimilar(List<Route> r1, List<Route> r2) {
         def intersects = r1.intersect(r2).size()
         if (intersects >= 2)
             return true
