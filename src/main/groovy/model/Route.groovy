@@ -2,15 +2,17 @@ package model
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
+import groovy.transform.Sortable
 import groovy.transform.ToString
 
 @ToString
 @EqualsAndHashCode
 @Immutable(knownImmutableClasses = [Stop]) // we instantiate Stops only once while context creation
+@Sortable(excludes = "platforms")
 class Route {
-    String name
-    String ref
     String type
+    String ref
+    String name
     List<Stop> platforms;
     String id
 

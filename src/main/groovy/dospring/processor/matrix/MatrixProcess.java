@@ -4,9 +4,7 @@ import model.Route;
 import model.Stop;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.*;
@@ -14,7 +12,7 @@ import static java.util.stream.Collectors.*;
 @Component
 public class MatrixProcess {
 
-    public Map<Stop, Map<Stop, Set<Route>>> prepareMatrix(Collection<Route> routes) {
+    public Map<Stop, Map<Stop, List<Route>>> prepareMatrix(Collection<Route> routes) {
         assert routes != null;
 
         Map<Stop, Set<Route>> stopsToRoutes =
@@ -28,7 +26,7 @@ public class MatrixProcess {
 
         // matrix is about ways to travel from stop1 to stop2: stop1 -> set<route> -> stop2
         // stopsToRoutes.stop -> stopsToRoutes.route (stop -> addToSet route)
-        Map<Stop, Map<Stop, Set<Route>>> matrix =
+        Map<Stop, Map<Stop, List<Route>>> matrix =
                 stopsToRoutes.entrySet().stream()
                 // stop -> set<route>
                 .flatMap(entry -> entry.getValue().stream()
@@ -41,9 +39,9 @@ public class MatrixProcess {
                                         .map(stop2 -> Pair.of(pair.k(), Pair.of(stop2, pair.v())))
                 )
                 .collect(
-                        groupingBy(Pair::k,
-                                groupingBy(pair -> pair.v().k(),
-                                        mapping(pair -> pair.v().v(), toSet())
+                        groupingBy(Pair::k, // first, group by stop 'from'
+                                groupingBy(pair -> pair.v().k(), // then by stop 'to'
+                                        mapping(pair -> pair.v().v(), toList()) // and gather routes, eliminating possible duplicates
                                 )
                         )
                 );

@@ -15,7 +15,7 @@ class OsmTransportStorage {
 
     Collection<Route> routes
     Collection<Stop> stops
-    Map<Stop, Map<Stop, Set<Route>>> matrix
+    Map<Stop, Map<Stop, List<Route>>> matrix
     Map<Stop, Map<Stop, Double>> walkMatrix
 
     @Value('${filename}')
@@ -37,7 +37,17 @@ class OsmTransportStorage {
         this.stops = transportDataProvider.stops
 
         walkMatrix = prepareWalkMatrix(stops)
-        matrix = matrixProcess.prepareMatrix(routes)
+        matrix = sortRoutes(matrixProcess.prepareMatrix(routes))
+    }
+
+    static Map<Stop, Map<Stop, List<Route>>> sortRoutes(Map<Stop, Map<Stop, List<Route>>> matrix) {
+        matrix.values().each { map ->
+            map.values().each {
+                list -> list.sort()
+            }
+        }
+
+        matrix
     }
 
     Map<Stop, Map<Stop, Double>> prepareWalkMatrix(Collection<Stop> stops) {

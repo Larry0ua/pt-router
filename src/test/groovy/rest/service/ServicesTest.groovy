@@ -38,14 +38,22 @@ class ServicesTest {
     @Test
     void "test route between two stops is found"() {
         def stops1 = stopService.findNearestStops(point1)
-        def stops3 = stopService.findNearestStops(point2)
+        def stops2 = stopService.findNearestStops(point2)
 
-        List<CalculatedRoute> routes = routeService.calculateRoutes(stops1, stops3)
+        List<CalculatedRoute> routes = routeService.calculateRoutes(stops1, stops2)
 
-        assert null != routes
-        assert 2 == routes.size()
         assert routes.routeChunks.every{it.size() == 1}
-        assert [[["R1"]], [["R2"]]].toSet() == routes.routeChunks.route.name.toSet()
+        assert [[["R1", "R2"]]] == routes.routeChunks.route.name
+    }
+
+    @Test
+    void "test longer route between two stops is found"() {
+        def stops1 = stopService.findNearestStops(point1)
+        def stops4 = stopService.findNearestStops(point4)
+
+        List<CalculatedRoute> routes = routeService.calculateRoutes(stops1, stops4)
+
+        assert [[["R2"]]] == routes.routeChunks.route.name
     }
 
     @Test
@@ -55,8 +63,6 @@ class ServicesTest {
 
         List<CalculatedRoute> routes = routeService.complexCalculateRoutes(stop2, stop5)
 
-        assert null != routes
-        assert 1 == routes.size()
         assert [[["R2"], ["R3"]]] == routes.routeChunks.route.name
     }
 
@@ -67,8 +73,6 @@ class ServicesTest {
 
         List<CalculatedRoute> routes = routeService.complexCalculateRoutes(stop1, stop8)
 
-        assert null != routes
-        assert 1 == routes.size()
         // by 2, then by 5 - should be eliminated
         // by 2, then by 4 or 5
         assert [[["R2"], ["R4", "R5"]]] == routes.routeChunks.route.name
@@ -106,7 +110,6 @@ class ServicesTest {
 
         List<CalculatedRoute> routes = routeService.complexCalculateRoutes(stops0, stops3)
 
-        assert null != routes
         assert 1 == routes.size()
         assert [[["R1"], ["R2"]]] == routes.routeChunks.route.name
     }

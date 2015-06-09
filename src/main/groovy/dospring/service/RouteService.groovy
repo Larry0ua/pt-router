@@ -19,8 +19,9 @@ class RouteService {
         List<CalculatedRoute> routes = []
         from?.each { f ->
             to?.each { t ->
-                transportStorage.matrix.get(f)?.get(t)?.collect {
-                    routes << CalculatedRoute.createRoute(new RouteChunk([it], f, t))
+                def rts = transportStorage.matrix.get(f)?.get(t)
+                if (rts) {
+                    routes << CalculatedRoute.createRoute(new RouteChunk(rts.toList().sort(), f, t))
                 }
             }
         }
