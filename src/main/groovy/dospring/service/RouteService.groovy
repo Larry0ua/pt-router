@@ -26,7 +26,7 @@ class RouteService {
             }
         }
 
-        return mergeRoutes(routes)
+        routes
     }
 
     List<CalculatedRoute> findRouteWithOneSwitch(Collection<Stop> from, Collection<Stop> to) {
@@ -57,6 +57,9 @@ class RouteService {
         [from, intermediatePoints, to].combinations {Stop p1, Stop p2, Stop p3 ->
             Collection<Route> routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
             Collection<Route> routes2 = routesEnd  .findAll { r -> r.isAfter(p2, p3) }
+            if (routes1.intersect(routes2)) {
+                return // we already have found this route in no-switch version
+            }
             if (routes1 && routes2) {
                 routes << new CalculatedRoute([
                         new RouteChunk(routes1, p1, p2),
@@ -90,32 +93,6 @@ class RouteService {
         }
 
         routes - routesToRemove
-//        [routesStart, routesEnd].combinations {
-//            Route r1, Route r2 ->
-//                from.each { Stop f ->
-//                    r1.eachAfter(f, { Stop intermediate ->
-//                        to.each { Stop t ->
-//                            if (r2.isAfter(intermediate, t))
-//                                subresult << new RouteStopRoute(
-//                                        start: f,
-//                                        route1: r1,
-//                                        intermediate: intermediate,
-//                                        route2: r2,
-//                                        end: t
-//                                )
-//                        }
-//                    })
-//                }
-//        }
-//
-//        // remove 'duplicates' when only intermediate point differs.
-//
-//        subresult.collect { rsr ->
-//            new CalculatedRoute([
-//                    new RouteChunk([rsr.route1], rsr.start, rsr.intermediate),
-//                    new RouteChunk([rsr.route2], rsr.intermediate, rsr.end),
-//            ])
-//        }
     }
 
     static boolean intersecting(List<Route> r1, List<Route> r2) {
@@ -128,10 +105,57 @@ class RouteService {
         false
     }
 
-    List<CalculatedRoute> mergeRoutes(List<CalculatedRoute> original) {
-        // each call verifies only the last chunks in the original routes
+    List<CalculatedRoute> findRouteWithTwoSwitches(List<Stop> from, List<Stop> to) {
+        // logic is similar to 1-switch version, but merging similar routes is more complex
 
-        // 1. remove duplicates
-        original.toSet().toList()
+        // no route if nulls or empty lists are passed
+        if (!from || !to) {
+            return []
+        }
+
+        List<CalculatedRoute> routes = []
+        List<Route> routesStart = transportStorage.routes.findAll {from.any{stop->it.platforms.contains(stop)}}
+        List<Route> routesEnd   = transportStorage.routes.findAll {  to.any{stop->it.platforms.contains(stop)}}
+        List<Route> routesAll   = transportStorage.routes
+
+        // look for intermediate stops
+        Set<Stop> intermediateFrom = []
+        from.each { Stop f ->
+            routesStart.each {
+                it.eachAfter(f, {
+                    intermediateFrom << it
+                })
+            }
+        }
+        Set<Stop> intermediateTo = []
+        to.each { Stop t ->
+            routesEnd.each {
+                it.eachBefore(t, {
+                    intermediateTo << it
+                })
+            }
+        }
+
+        if (!intermediateFrom || !intermediateTo) {
+            return []
+        }
+
+        [from, intermediateFrom, intermediateTo, to].combinations {Stop p1, Stop p2, Stop p3, Stop p4 ->
+            Collection<Route> routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
+            Collection<Route> routes2 = routesAll  .findAll { r -> r.isAfter(p2, p3) }
+            Collection<Route> routes3 = routesEnd  .findAll { r -> r.isAfter(p3, p4) }
+            if (routes1 && routes2 && routes3) {
+                routes << new CalculatedRoute([
+                        new RouteChunk(routes1, p1, p2),
+                        new RouteChunk(routes2, p2, p3),
+                        new RouteChunk(routes3, p3, p4)
+                ])
+            }
+        }
+
+        // two optimizations should be here:
+        // 1. eliminate routes with same route names but different stops - look for stops with the same condition as in 1-switch version
+        // 2. remove subsets - 1, 2, (4,5) should have priority over 1, 2, 5 or 1, 2, 4, stops do not matter this time
+        routes
     }
 }

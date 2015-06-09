@@ -115,6 +115,16 @@ class ServicesTest {
     }
 
     @Test
+    void "test route with two switches"() {
+        def stops0 = stopService.findNearestStops(point0)
+        def stops8 = stopService.findNearestStops(point8)
+
+        List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitches(stops0, stops8)
+
+        assert [[["R1"], ["R2"], ["R4", "R5"]]] == routes.routeChunks.route.name
+    }
+
+    @Test
     @Ignore
     void drawRoutes() {
         def drawer = new RouteDrawer()
