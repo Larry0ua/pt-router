@@ -113,7 +113,7 @@ class ServicesTest {
         def stops0 = stopService.findNearestStops(point0)
         def stops8 = stopService.findNearestStops(point8)
 
-        List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitches(stops0, stops8)
+        List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(point0, point8)
 
         assert [[["R1"], ["R2"], ["R4", "R5"]]] == routes.routeChunks.route.name
     }
