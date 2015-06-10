@@ -87,7 +87,6 @@ class RouteService {
                         new RouteChunk(routes2.asList(), p2, p3)
                 ])
             }
-
         }
 
         dropSimilarRoutes(routes)

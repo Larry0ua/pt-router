@@ -37,8 +37,8 @@ class ServicesTest {
 
     Stop stop10 = new Stop(name: "stop 10", lat: 49.0, lon: 24.0 ) // 500m is around 0.006 in this location
     Stop stop11 = new Stop(name: "stop 11", lat: 49.0, lon: 24.01)
-    Stop stop12 = new Stop(name: "stop 12", lat: 49.0, lon: 24.02)
-    Stop stop13 = new Stop(name: "stop 13", lat: 49.0, lon: 24.022)
+    Stop stop12 = new Stop(name: "stop 12", lat: 49.0, lon: 24.012)
+    Stop stop13 = new Stop(name: "stop 13", lat: 49.0, lon: 24.02)
     Stop stop14 = new Stop(name: "stop 14", lat: 49.0, lon: 24.03)
     Stop stop15 = new Stop(name: "stop 15", lat: 49.0, lon: 24.04)
     @Test
@@ -127,9 +127,16 @@ class ServicesTest {
 
     @Test
     void "test path with 1 switch with a gap"() {
-        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(stop10, stop15)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(stop10, stop13)
 
         assert [[["R6"], [], ["R7"]]] == routes.routeChunks.route.name
+    }
+
+    @Test
+    void "test path with 1 switch with gap overlapping 2nd route"() {
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(stop12, stop15)
+
+        assert [[["R7"], ["R8"]]] == routes.routeChunks.route.name
     }
 
     @Test
@@ -167,15 +174,16 @@ class ServicesTest {
                                     new Route(name: "R3", id:3, type: "bus", platforms: [stop3, stop4, stop5, stop6]),
                                     new Route(name: "R4", id:4, type: "bus", platforms: [stop4, stop7, stop8]),
                                     new Route(name: "R5", id:5, type: "bus", platforms: [stop3, stop4, stop7, stop8]),
-                                    new Route(name: "R6", id:6, type: "bus", platforms: [stop10, stop11, stop12]),
-                                    new Route(name: "R7", id:7, type: "bus", platforms: [stop13, stop14, stop15]),
+                                    new Route(name: "R6", id:6, type: "bus", platforms: [stop10, stop11]),
+                                    new Route(name: "R7", id:7, type: "bus", platforms: [stop12, stop13]),
+                                    new Route(name: "R8", id:8, type: "bus", platforms: [stop13, stop14, stop15]),
                             ])
                             /*
                             0(1) -> 1(1,2) -> 2(1,2) -> 3(2,3,5) -> 4(2,3,4,5) -> 5(3) -> 6(3)
                                                                     |
                                                                     \-> 7(4,5) -> 8(4,5)
 
-                            10 (6) -> 11 (6) -> 12 (6) .. 13 (7) -> 14 (7) -> 15 (7)
+                            10 (6) -> 11 (6) .. 12 (7) -> 13 (7,8) .. 14 (8) -> 15 (8)
                              */
                         }
                     }
