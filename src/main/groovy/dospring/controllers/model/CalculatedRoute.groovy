@@ -20,7 +20,7 @@ class CalculatedRoute {
     }
 }
 
-// for walk - route = null
+// for walk - route = []
 @Immutable(knownImmutableClasses = [Stop])
 @ToString
 class RouteChunk {

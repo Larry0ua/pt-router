@@ -2,6 +2,7 @@ package dospring.service
 import dospring.controllers.model.CalculatedRoute
 import dospring.controllers.model.RouteChunk
 import dospring.storage.parser.TransportStorage
+import model.Point
 import model.Route
 import model.Stop
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,7 +14,69 @@ class RouteService {
     @Autowired
     TransportStorage transportStorage
 
-//    List<CalculatedRoute>
+    @Autowired
+    StopService stopService
+
+    List<CalculatedRoute> findSimpleRouteByPoints(Point from, Point to) {
+        findSimpleRoute(stopService.findNearestStops(from), stopService.findNearestStops(to))
+    }
+
+    List<CalculatedRoute> findRouteWithOneSwitchByPointsWithGaps(Point fromPoint, Point toPoint) {
+
+        Collection<Stop> from = stopService.findNearestStops(fromPoint)
+        Collection<Stop> to = stopService.findNearestStops(toPoint)
+
+        // no route if no stops are found around given points
+        if (!from || !to) {
+            return []
+        }
+
+        List<CalculatedRoute> routes = []
+        List<Route> routesStart = transportStorage.routes.findAll {from.any{stop->it.platforms.contains(stop)}}
+        List<Route> routesEnd =   transportStorage.routes.findAll {  to.any{stop->it.platforms.contains(stop)}}
+
+        // look for intermediate stops
+        Set<Stop> intermediatePoints = []
+        from.each { Stop f ->
+            routesStart.each {
+                it.eachAfter(f, {
+                    intermediatePoints << it
+                })
+            }
+        }
+        // if there is no intermediate points between start and end
+        if (intermediatePoints.empty) {
+            return []
+        }
+
+        [from, intermediatePoints, to].combinations {Stop p1, Stop p2, Stop p3 ->
+            // intermediate points are tied to start points by routes. Find routes1, then find nearest stops to these intermediate and check routes2 from these nearest stops
+            Collection<Route> routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
+
+            Collection<Stop> nearIntermediate = stopService.findNearestStops(p2)
+            nearIntermediate.each { Stop p2walk ->
+
+                // should not print routes in which we would walk and use same route as was on the previous stop
+                Collection<Route> routes2 = routesEnd.findAll { r -> r.isAfter(p2walk, p3) && !r.contains(p2) }
+                if (routes1.intersect(routes2)) {
+                    return // we already have covered this route in no-switch version
+                }
+
+                if (routes1 && routes2) {
+                    def routeChunks = []
+                    routeChunks << new RouteChunk(routes1.asList(), p1, p2)
+                    if (p2walk != p2) {
+                        routeChunks << new RouteChunk([], p2, p2walk)
+                    }
+                    routeChunks << new RouteChunk(routes2.asList(), p2walk, p3)
+
+                    routes << new CalculatedRoute(routeChunks)
+                }
+            }
+        }
+
+        dropSimilarRoutes(routes)
+    }
 
     List<CalculatedRoute> findSimpleRoute(Collection<Stop> from, Collection<Stop> to) {
         List<CalculatedRoute> routes = []
@@ -98,8 +161,7 @@ class RouteService {
                 processed += similar
                 // max by multiplication of the |routes|
                 def winner = similar.max { CalculatedRoute r -> r.routeChunks.collect{it.route.size()}.inject(0, {a,b->a*b}) }
-                similar -= winner
-                routesToRemove += similar
+                routesToRemove += similar - winner
             }
         }
         routes - routesToRemove
@@ -116,7 +178,7 @@ class RouteService {
     }
 
     List<CalculatedRoute> findRouteWithTwoSwitches(List<Stop> from, List<Stop> to) {
-        // logic is similar to 1-switch version, but merging similar routes is more complex
+        // logic is similar to 1-switch version
 
         // no route if nulls or empty lists are passed
         if (!from || !to) {
@@ -166,10 +228,6 @@ class RouteService {
             }
         }
 
-        // two optimizations should be here:
-        // 1. eliminate routes with same route names but different stops - look for stops with the same condition as in 1-switch version
-        // 2. remove subsets - 1, 2, (4,5) should have priority over 1, 2, 5 or 1, 2, 4, stops do not matter this time
-        routes = dropSimilarRoutes(routes)
-        routes
+        dropSimilarRoutes(routes)
     }
 }

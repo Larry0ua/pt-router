@@ -16,6 +16,10 @@ class StopService {
     TransportStorage transportStorage
 
     Stop findNearestStop(Point start) {
+        if (!start) {
+            return null
+        }
+
         def nearestStop = transportStorage.stops.min { it - start }
         if (start - nearestStop > maxDistance) {
             null
@@ -25,6 +29,10 @@ class StopService {
     }
 
     List<Stop> findNearestStops(Point start) {
+        if (!start) {
+            return []
+        }
+
         transportStorage.stops.findAll{it - start < maxDistance}.sort{it - start}
     }
 }

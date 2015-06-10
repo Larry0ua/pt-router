@@ -42,4 +42,8 @@ class Route {
         }
 
     }
+
+    boolean contains(Stop p) {
+        platforms.contains(p)
+    }
 }
