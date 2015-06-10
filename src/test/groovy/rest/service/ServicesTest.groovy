@@ -35,12 +35,17 @@ class ServicesTest {
     Stop stop7 = new Stop(name: "stop 7", lat: 48.5, lon: 24.1)
     Stop stop8 = new Stop(name: "stop 8", lat: 48.5, lon: 24.2)
 
-    Stop stop10 = new Stop(name: "stop 10", lat: 49.0, lon: 24.0 ) // 500m is around 0.006 in this location
-    Stop stop11 = new Stop(name: "stop 11", lat: 49.0, lon: 24.01)
-    Stop stop12 = new Stop(name: "stop 12", lat: 49.0, lon: 24.012)
-    Stop stop13 = new Stop(name: "stop 13", lat: 49.0, lon: 24.02)
-    Stop stop14 = new Stop(name: "stop 14", lat: 49.0, lon: 24.03)
-    Stop stop15 = new Stop(name: "stop 15", lat: 49.0, lon: 24.04)
+    Stop stop10 = new Stop(name: "stop 10", lat: 49.0,   lon: 24.0 ) // 500m is around 0.006 in this location
+    Stop stop11 = new Stop(name: "stop 11", lat: 49.0,   lon: 24.01)
+    Stop stop12 = new Stop(name: "stop 12", lat: 49.0,   lon: 24.012)
+    Stop stop13 = new Stop(name: "stop 13", lat: 49.0,   lon: 24.02)
+    Stop stop14 = new Stop(name: "stop 14", lat: 49.0,   lon: 24.03)
+    Stop stop15 = new Stop(name: "stop 15", lat: 49.0,   lon: 24.04)
+    Stop stop16 = new Stop(name: "stop 16", lat: 49.0,   lon: 24.042)
+    Stop stop17 = new Stop(name: "stop 17", lat: 49.0,   lon: 24.05)
+    Stop stop18 = new Stop(name: "stop 18", lat: 49.001, lon: 24.03)
+    Stop stop19 = new Stop(name: "stop 19", lat: 49.01,  lon: 24.03)
+
     @Test
     void "test stop is found"() {
         def stop = stopService.findNearestStop(point1)
@@ -110,12 +115,25 @@ class ServicesTest {
 
     @Test
     void "test route with two switches"() {
-        def stops0 = stopService.findNearestStops(point0)
-        def stops8 = stopService.findNearestStops(point8)
-
         List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(point0, point8)
 
         assert [[["R1"], ["R2"], ["R4", "R5"]]] == routes.routeChunks.route.name
+    }
+
+
+    @Test
+    void "test route with two switches and one gap"() {
+        List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(stop10, stop15)
+
+        assert [[["R6"], [], ["R7"], ["R8"]]] == routes.routeChunks.route.name
+    }
+
+
+    @Test
+    void "test route with two switches and two gaps"() {
+        List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(stop19, stop17)
+
+        assert [[["R10"], [], ["R8"], [], ["R9"]]] == routes.routeChunks.route.name
     }
 
     @Test
@@ -166,7 +184,7 @@ class ServicesTest {
 
 
                             setStops([stop0, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8,
-                                    stop10, stop11, stop12, stop13, stop14, stop15
+                                    stop10, stop11, stop12, stop13, stop14, stop15, stop16, stop17, stop18, stop19
                             ])
                             setRoutes([
                                     new Route(name: "R1", id:1, type: "bus", platforms: [stop0, stop1, stop2]),
@@ -177,13 +195,18 @@ class ServicesTest {
                                     new Route(name: "R6", id:6, type: "bus", platforms: [stop10, stop11]),
                                     new Route(name: "R7", id:7, type: "bus", platforms: [stop12, stop13]),
                                     new Route(name: "R8", id:8, type: "bus", platforms: [stop13, stop14, stop15]),
+                                    new Route(name: "R9", id:9, type: "bus", platforms: [stop16, stop17]),
+                                    new Route(name: "R10",id:10,type: "bus", platforms: [stop19, stop18]),
                             ])
                             /*
                             0(1) -> 1(1,2) -> 2(1,2) -> 3(2,3,5) -> 4(2,3,4,5) -> 5(3) -> 6(3)
                                                                     |
                                                                     \-> 7(4,5) -> 8(4,5)
 
-                            10 (6) -> 11 (6) .. 12 (7) -> 13 (7,8) .. 14 (8) -> 15 (8)
+                            10 (6) -> 11 (6) .. 12 (7) -> 13 (7,8) .. 14 (8) -> 15 (8) .. 16 (9) -> 17(9)
+                                                                       ..
+                                                                      18 (10)
+                                                                      19 (10)
                              */
                         }
                     }
