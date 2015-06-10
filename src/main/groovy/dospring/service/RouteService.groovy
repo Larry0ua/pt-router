@@ -89,55 +89,6 @@ class RouteService {
     }
 
     // find routes that differ in intermediate point only. Leave only one - where this point is farther from the start
-    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes, Point start, Point end) {
-        List<CalculatedRoute> routesToRemove = []
-        List<CalculatedRoute> processed = []
-        for (int i = 0; i < routes.size() - 1; i++) {
-            def r1 = routes[i]
-            if (processed.contains(r1)) {
-                continue
-            }
-            def similar = []
-            for (int j = i + 1; j < routes.size(); j++) {
-                def r2 = routes[j]
-                if (r1.routeChunks.size() != r2.routeChunks.size()) {
-                    continue
-                }
-                if ((0..<(r1.routeChunks.size())).every {Integer idx ->
-                    routesSimilar(r1.routeChunks[idx].route, r2.routeChunks[idx].route)}) {
-
-                    similar << r2
-                }
-            }
-            if (!similar.empty) {
-                similar << r1
-                r1.routeChunks.collect{it.route.size()}.inject(1, {a,b->a*b})
-                processed += similar
-                // max by multiplication of the |routes|
-                def winner = similar.max { CalculatedRoute r ->
-                    1000 * r.routeChunks.collect{it.route.size()}.inject(0, {a,b->a*b})
-                    + (r.routeChunks.first().start - start) // start distance in meters
-                    + (r.routeChunks.last() .end   - end) // plus end distance in meters
-                }
-                routesToRemove += similar - winner
-            }
-        }
-        routes - routesToRemove
-    }
-
-    private static boolean routesSimilar(List<Route> r1, List<Route> r2) {
-        if (!r1 && !r2) {
-            return true
-        }
-        def intersects = r1.intersect(r2).size()
-        if (intersects >= 2)
-            return true
-        if (intersects == 1 && (r1.size() == 1 || r2.size() == 1)) {
-            return true
-        }
-        false
-    }
-
     List<CalculatedRoute> findRouteWithTwoSwitchesAndGaps(Point fromPoint, Point toPoint) {
 
         Collection<Stop> from = stopService.findNearestStops(fromPoint)
@@ -210,5 +161,54 @@ class RouteService {
         }
 
         dropSimilarRoutes(routes, fromPoint, toPoint)
+    }
+
+    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes, Point start, Point end) {
+        List<CalculatedRoute> routesToRemove = []
+        List<CalculatedRoute> processed = []
+        for (int i = 0; i < routes.size() - 1; i++) {
+            def r1 = routes[i]
+            if (processed.contains(r1)) {
+                continue
+            }
+            def similar = []
+            for (int j = i + 1; j < routes.size(); j++) {
+                def r2 = routes[j]
+                if (r1.routeChunks.size() != r2.routeChunks.size()) {
+                    continue
+                }
+                if ((0..<(r1.routeChunks.size())).every {Integer idx ->
+                    routesSimilar(r1.routeChunks[idx].route, r2.routeChunks[idx].route)}) {
+
+                    similar << r2
+                }
+            }
+            if (!similar.empty) {
+                similar << r1
+                r1.routeChunks.collect{it.route.size()}.inject(1, {a,b->a*b})
+                processed += similar
+                // max by multiplication of the |routes|
+                def winner = similar.max { CalculatedRoute r ->
+                    1000 * r.routeChunks.collect{it.route.size()}.inject(0, {a,b->a*b})
+                    + (r.routeChunks.first().start - start) // start distance in meters
+                    + (r.routeChunks.last() .end   - end) // plus end distance in meters
+                }
+                routesToRemove += similar - winner
+            }
+        }
+        routes - routesToRemove
+    }
+
+    private static boolean routesSimilar(List<Route> r1, List<Route> r2) {
+        if (!r1 && !r2) {
+            return true
+        }
+        def intersects = r1.intersect(r2).size()
+        if (intersects >= 2)
+            return true
+        if (intersects == 1 && (r1.size() == 1 || r2.size() == 1)) {
+            return true
+        }
+        false
     }
 }
