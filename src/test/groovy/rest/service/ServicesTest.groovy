@@ -53,48 +53,29 @@ class ServicesTest {
 
     @Test
     void "test route between two stops is found"() {
-        def stops1 = stopService.findNearestStops(point1)
-        def stops2 = stopService.findNearestStops(point2)
-
-        List<CalculatedRoute> routes = routeService.findSimpleRoute(stops1, stops2)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(point1, point2)
 
         assert routes.routeChunks.every{it.size() == 1}
         assert [[["R1", "R2"]]] == routes.routeChunks.route.name
     }
 
     @Test
-    void "test route between two stops is found by points"() {
-        List<CalculatedRoute> routes = routeService.findSimpleRouteByPoints(point1, point2)
-
-        assert [[["R1", "R2"]]] == routes.routeChunks.route.name
-    }
-
-    @Test
     void "test longer route between two stops is found"() {
-        def stops1 = stopService.findNearestStops(point1)
-        def stops4 = stopService.findNearestStops(point4)
-
-        List<CalculatedRoute> routes = routeService.findSimpleRoute(stops1, stops4)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(point1, point4)
 
         assert [[["R2"]]] == routes.routeChunks.route.name
     }
 
     @Test
     void "test route with one route switch"() {
-        def stop2 = stopService.findNearestStops(point2)
-        def stop5 = stopService.findNearestStops(point5)
-
-        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stop2, stop5)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point2, point5)
 
         assert [[["R2"], ["R3"]]] == routes.routeChunks.route.name
     }
 
     @Test
     void "test longer route with one route swtich"() {
-        def stop1 = stopService.findNearestStops(point1)
-        def stop8 = stopService.findNearestStops(point8)
-
-        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stop1, stop8)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point1, point8)
 
         // by 2, then by 5 - should be eliminated
         // by 2, then by 4 or 5
@@ -103,14 +84,11 @@ class ServicesTest {
 
     @Test
     void "test that path is not found with zero or one swtich"() {
-        def stop6 = stopService.findNearestStops(point6)
-        def stop8 = stopService.findNearestStops(point8)
-
-        List<CalculatedRoute> routes = routeService.findSimpleRoute(stop6, stop8)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(point6, point8)
 
         assert routes.empty
 
-        routes = routeService.findRouteWithOneSwitch(stop6, stop8)
+        routes = routeService.findRouteWithOneSwitchWithGaps(point6, point8)
 
         assert routes.empty
 
@@ -118,20 +96,14 @@ class ServicesTest {
 
     @Test
     void "test that direct path is not found"() {
-        def stop2 = stopService.findNearestStops(point2)
-        def stop5 = stopService.findNearestStops(point5)
-
-        List<CalculatedRoute> routes = routeService.findSimpleRoute(stop2, stop5)
+        List<CalculatedRoute> routes = routeService.findSimpleRoute(point2, point5)
 
         assert routes.empty
     }
 
     @Test
     void "test routes are not duplicated when there are more than one possible point to do a swtich"() {
-        def stops0 = stopService.findNearestStops(point0)
-        def stops3 = stopService.findNearestStops(point3)
-
-        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stops0, stops3)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point0, point3)
 
         assert [[["R1"], ["R2"]]] == routes.routeChunks.route.name
     }
@@ -148,17 +120,14 @@ class ServicesTest {
 
     @Test
     void "test that 1-switch version does not out no-switch paths"() {
-        def stops0 = stopService.findNearestStops(point0)
-        def stops2 = stopService.findNearestStops(point2)
-
-        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitch(stops0, stops2)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point0, point2)
 
         assert routes.empty
     }
 
     @Test
     void "test path with 1 switch with a gap"() {
-        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchByPointsWithGaps(stop10, stop15)
+        List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(stop10, stop15)
 
         assert [[["R6"], [], ["R7"]]] == routes.routeChunks.route.name
     }

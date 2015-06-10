@@ -17,11 +17,24 @@ class RouteService {
     @Autowired
     StopService stopService
 
-    List<CalculatedRoute> findSimpleRouteByPoints(Point from, Point to) {
-        findSimpleRoute(stopService.findNearestStops(from), stopService.findNearestStops(to))
+    List<CalculatedRoute> findSimpleRoute(Point from, Point to) {
+        List<CalculatedRoute> routes = []
+
+        def stopsFrom = stopService.findNearestStops(from)
+        def stopsTo = stopService.findNearestStops(to)
+
+        stopsFrom?.each { f ->
+            stopsTo?.each { t ->
+                def rts = transportStorage.matrix.get(f)?.get(t)
+                if (rts) {
+                    routes << CalculatedRoute.createRoute(new RouteChunk(rts.toList().sort(), f, t))
+                }
+            }
+        }
+        routes
     }
 
-    List<CalculatedRoute> findRouteWithOneSwitchByPointsWithGaps(Point fromPoint, Point toPoint) {
+    List<CalculatedRoute> findRouteWithOneSwitchWithGaps(Point fromPoint, Point toPoint) {
 
         Collection<Stop> from = stopService.findNearestStops(fromPoint)
         Collection<Stop> to = stopService.findNearestStops(toPoint)
@@ -53,82 +66,28 @@ class RouteService {
             // intermediate points are tied to start points by routes. Find routes1, then find nearest stops to these intermediate and check routes2 from these nearest stops
             Collection<Route> routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
 
-            Collection<Stop> nearIntermediate = stopService.findNearestStops(p2)
+            Collection<Stop> nearIntermediate = stopService.findNearestStops(p2) - p2
             nearIntermediate.each { Stop p2walk ->
 
                 // should not print routes in which we would walk and use same route as was on the previous stop
                 Collection<Route> routes2 = routesEnd.findAll { r -> r.isAfter(p2walk, p3) && !r.contains(p2) }
-                if (routes1.intersect(routes2)) {
-                    return // we already have covered this route in no-switch version
-                }
-
-                if (routes1 && routes2) {
-                    def routeChunks = []
-                    routeChunks << new RouteChunk(routes1.asList(), p1, p2)
-                    if (p2walk != p2) {
-                        routeChunks << new RouteChunk([], p2, p2walk)
-                    }
-                    routeChunks << new RouteChunk(routes2.asList(), p2walk, p3)
-
-                    routes << new CalculatedRoute(routeChunks)
+                if (routes1 && routes2 && !routes1.intersect(routes2)) {
+                    routes << new CalculatedRoute([
+                            new RouteChunk(routes1.asList(), p1, p2),
+                            new RouteChunk([], p2, p2walk),
+                            new RouteChunk(routes2.asList(), p2walk, p3)
+                    ])
                 }
             }
-        }
-
-        dropSimilarRoutes(routes)
-    }
-
-    List<CalculatedRoute> findSimpleRoute(Collection<Stop> from, Collection<Stop> to) {
-        List<CalculatedRoute> routes = []
-        from?.each { f ->
-            to?.each { t ->
-                def rts = transportStorage.matrix.get(f)?.get(t)
-                if (rts) {
-                    routes << CalculatedRoute.createRoute(new RouteChunk(rts.toList().sort(), f, t))
-                }
-            }
-        }
-
-        routes
-    }
-
-    List<CalculatedRoute> findRouteWithOneSwitch(Collection<Stop> from, Collection<Stop> to) {
-
-        // no route if nulls or empty lists are passed
-        if (!from || !to) {
-            return []
-        }
-
-        List<CalculatedRoute> routes = []
-        List<Route> routesStart = transportStorage.routes.findAll {from.any{stop->it.platforms.contains(stop)}}
-        List<Route> routesEnd =   transportStorage.routes.findAll {  to.any{stop->it.platforms.contains(stop)}}
-
-        // look for intermediate stops
-        Set<Stop> intermediatePoints = []
-        from.each { Stop f ->
-            routesStart.each {
-                it.eachAfter(f, {
-                    intermediatePoints << it
-                })
-            }
-        }
-        // if there is no intermediate points between start and end
-        if (intermediatePoints.empty) {
-            return []
-        }
-
-        [from, intermediatePoints, to].combinations {Stop p1, Stop p2, Stop p3 ->
-            Collection<Route> routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
-            Collection<Route> routes2 = routesEnd  .findAll { r -> r.isAfter(p2, p3) }
-            if (routes1.intersect(routes2)) {
-                return // we already have covered this route in no-switch version
-            }
-            if (routes1 && routes2) {
+            // no-walk part
+            Collection<Route> routes2 = routesEnd.findAll { r -> r.isAfter(p2, p3) }
+            if (routes1 && routes2 && !routes1.intersect(routes2)) {
                 routes << new CalculatedRoute([
-                        new RouteChunk(routes1, p1, p2),
-                        new RouteChunk(routes2, p2, p3)
+                        new RouteChunk(routes1.asList(), p1, p2),
+                        new RouteChunk(routes2.asList(), p2, p3)
                 ])
             }
+
         }
 
         dropSimilarRoutes(routes)
