@@ -31,11 +31,11 @@ class TransportDataProvider {
                 processRelation: { attributes, tags, members ->
                     if (tags.type == 'route' && tags.route in supportedTypes) {
                         Collection<Stop> stops = []
-                        members.findAll {it.type == 'node' && it.role.startsWith('platform')}*.ref.each {
-                            if (stopsMap[it]) {
-                                stops << stopsMap[it]
+                        members.findAll {it.type == 'node' && it.role.startsWith('platform')}*.ref.each { String id ->
+                            if (stopsMap[id]) {
+                                stops << stopsMap[id]
                             } else {
-                                println "Stop not found $it"
+                                println "Stop not found $id"
                             }
                         }
                         routes << new Route(

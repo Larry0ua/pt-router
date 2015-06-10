@@ -31,7 +31,7 @@ class RouteService {
                 }
             }
         }
-        routes
+        dropSimilarRoutes(routes, from, to)
     }
 
     List<CalculatedRoute> findRouteWithOneSwitchWithGaps(Point fromPoint, Point toPoint) {
@@ -85,11 +85,11 @@ class RouteService {
             }
         }
 
-        dropSimilarRoutes(routes)
+        dropSimilarRoutes(routes, fromPoint, toPoint)
     }
 
     // find routes that differ in intermediate point only. Leave only one - where this point is farther from the start
-    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes) {
+    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes, Point start, Point end) {
         List<CalculatedRoute> routesToRemove = []
         List<CalculatedRoute> processed = []
         for (int i = 0; i < routes.size() - 1; i++) {
@@ -114,7 +114,11 @@ class RouteService {
                 r1.routeChunks.collect{it.route.size()}.inject(1, {a,b->a*b})
                 processed += similar
                 // max by multiplication of the |routes|
-                def winner = similar.max { CalculatedRoute r -> r.routeChunks.collect{it.route.size()}.inject(0, {a,b->a*b}) }
+                def winner = similar.max { CalculatedRoute r ->
+                    1000 * r.routeChunks.collect{it.route.size()}.inject(0, {a,b->a*b})
+                    + (r.routeChunks.first().start - start) // start distance in meters
+                    + (r.routeChunks.last() .end   - end) // plus end distance in meters
+                }
                 routesToRemove += similar - winner
             }
         }
@@ -205,6 +209,6 @@ class RouteService {
             }
         }
 
-        dropSimilarRoutes(routes)
+        dropSimilarRoutes(routes, fromPoint, toPoint)
     }
 }
