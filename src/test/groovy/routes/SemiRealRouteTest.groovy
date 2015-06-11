@@ -1,4 +1,4 @@
-package rest.service
+package routes
 
 import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
