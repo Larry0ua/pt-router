@@ -25,17 +25,17 @@ class RealDataRouteTest {
     @Test
     void "test simple route without switches (use 34 only)"() {
         def route = routeService.findSimpleRoute(fastivska, epicentr)
-        assert [[["34"]]] == route.routeChunks.route.ref
+        assert [[[], ["34"], []]] == route.routeChunks.route.ref
     }
 
     @Test
     void "test simple route with parallelism (use bus 34 or troll 2)"() {
         def route = routeService.findSimpleRoute(fastivska, mist)
-        assert [[["34", "2"]]] == route.routeChunks.route.ref
+        assert [[[], ["34", "2"], []]] == route.routeChunks.route.ref
     }
 
     @Test
-    void "test route with one switch (use 12, 11 or 2, then 39)"() {
+    void "test route with one switch (to center, from center)"() {
         def route = routeService.findRouteWithOneSwitchWithGaps(end1a, chornivka)
         assert [[["2", "11"], ["39"]], [["12"], ["39"]]] == route.routeChunks.route.ref
     }

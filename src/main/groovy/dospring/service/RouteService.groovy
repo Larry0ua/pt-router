@@ -27,7 +27,11 @@ class RouteService {
             stopsTo?.each { t ->
                 def rts = transportStorage.matrix.get(f)?.get(t)
                 if (rts) {
-                    routes << CalculatedRoute.createRoute(new RouteChunk(rts.toList().sort(), f, t))
+                    routes << CalculatedRoute.createRoute([
+                            new RouteChunk([], from, f),
+                            new RouteChunk(rts.toList().sort(), f, t),
+                            new RouteChunk([], t, to)
+                    ])
                 }
             }
         }
@@ -75,12 +79,13 @@ class RouteService {
                 if (routes1 && routes2
                         && !routes1.intersect(routes2)  // TODO: think about replacing with routes2.containsAll(routes1)
                         && (!routes2.every {r -> r.contains(p2)} || p2 == p2walk)) { // no need to walk if this gap is covered by all routes
-                    def routeChunks = []
-                    routeChunks << new RouteChunk(routes1, p1, p2)
-                    if (p2 != p2walk)
-                        routeChunks << new RouteChunk([], p2, p2walk)
-                    routeChunks << new RouteChunk(routes2, p2walk, p3)
-                    routes << new CalculatedRoute(routeChunks)
+                    routes << CalculatedRoute.createRoute([
+                            new RouteChunk([], fromPoint, p1),
+                            new RouteChunk(routes1, p1, p2),
+                            new RouteChunk([], p2, p2walk),
+                            new RouteChunk(routes2, p2walk, p3),
+                            new RouteChunk([], p3, toPoint)
+                    ])
                 }
             }
         }
@@ -146,16 +151,16 @@ class RouteService {
                         && (!routesInterm.every {it.contains(p2)} || p2 == p2walk)
                         && (!routesInterm.every {it.contains(p3)} || p3 == p3walk)
                 ) {
-                    def routeChunks = []
-                    routeChunks << new RouteChunk(routes1, p1, p2)
-                    if (p2 != p2walk)
-                        routeChunks << new RouteChunk([], p2, p2walk)
-                    routeChunks << new RouteChunk(routesInterm, p2walk, p3walk)
-                    if (p3 != p3walk)
-                        routeChunks << new RouteChunk([], p3walk, p3)
-                    routeChunks << new RouteChunk(routes2, p3, p4)
 
-                    routes << new CalculatedRoute(routeChunks)
+                    routes << CalculatedRoute.createRoute([
+                            new RouteChunk([], fromPoint, p1),
+                            new RouteChunk(routes1, p1, p2),
+                            new RouteChunk([], p2, p2walk),
+                            new RouteChunk(routesInterm, p2walk, p3walk),
+                            new RouteChunk([], p3walk, p3),
+                            new RouteChunk(routes2, p3, p4),
+                            new RouteChunk([], p4, toPoint)
+                    ])
                 }
             }
         }
@@ -171,7 +176,7 @@ class RouteService {
             if (processed.contains(r1)) {
                 continue
             }
-            def similar = []
+            List<CalculatedRoute> similar = []
             for (int j = i + 1; j < routes.size(); j++) {
                 def r2 = routes[j]
                 if (r1.routeChunks.size() != r2.routeChunks.size()) {
@@ -188,11 +193,10 @@ class RouteService {
                 r1.routeChunks.collect{it.route.size()}.inject(1, {a,b->a*b})
                 processed += similar
                 // max by multiplication of the |routes|
-                def winner = similar.max { CalculatedRoute r ->
-                    1000 * r.routeChunks.collect{it.route.size()}.inject(0, {a,b->a*b})
-                    + (r.routeChunks.first().start - start) // start distance in meters
-                    + (r.routeChunks.last() .end   - end) // plus end distance in meters
-                }
+                similar.sort {r -> r.routeChunks.sum {it.end - r.routeChunks.last().end}} // least important - route chunk ends as close to the destination as possible
+                similar.sort {it.routeChunks.findAll {!it.route}.sum {it.start - it.end}} // then by overall walk distance
+                similar.sort {it.routeChunks.collect {it.route.size()}.inject (0, {a,b->a*b})} // most important - more routes for the path
+                def winner = similar[0]
                 routesToRemove += similar - winner
             }
         }

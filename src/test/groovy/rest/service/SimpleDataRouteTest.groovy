@@ -13,7 +13,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 
-class ServicesTest {
+class SimpleDataRouteTest {
 
     Point point0 = new Point(lat:47.9, lon:24.0001) // stop 0
     Point point1 = new Point(lat:48.0, lon:24.0001) // stop 1
@@ -60,22 +60,21 @@ class ServicesTest {
     void "test route between two stops is found"() {
         List<CalculatedRoute> routes = routeService.findSimpleRoute(point1, point2)
 
-        assert routes.routeChunks.every{it.size() == 1}
-        assert [[["R1", "R2"]]] == routes.routeChunks.route.name
+        assert [[[], ["R1", "R2"], []]] == routes.routeChunks.route.name
     }
 
     @Test
     void "test longer route between two stops is found"() {
         List<CalculatedRoute> routes = routeService.findSimpleRoute(point1, point4)
 
-        assert [[["R2"]]] == routes.routeChunks.route.name
+        assert [[[], ["R2"], []]] == routes.routeChunks.route.name
     }
 
     @Test
     void "test route with one route switch"() {
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point2, point5)
 
-        assert [[["R2"], ["R3"]]] == routes.routeChunks.route.name
+        assert [[[], ["R2"], ["R3"], []]] == routes.routeChunks.route.name
     }
 
     @Test
@@ -84,7 +83,7 @@ class ServicesTest {
 
         // by 2, then by 5 - should be eliminated
         // by 2, then by 4 or 5
-        assert [[["R2"], ["R4", "R5"]]] == routes.routeChunks.route.name
+        assert [[[], ["R2"], ["R4", "R5"], []]] == routes.routeChunks.route.name
     }
 
     @Test
@@ -110,14 +109,14 @@ class ServicesTest {
     void "test routes are not duplicated when there are more than one possible point to do a swtich"() {
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point0, point3)
 
-        assert [[["R1"], ["R2"]]] == routes.routeChunks.route.name
+        assert [[[], ["R1"], ["R2"], []]] == routes.routeChunks.route.name
     }
 
     @Test
     void "test route with two switches"() {
         List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(point0, point8)
 
-        assert [[["R1"], ["R2"], ["R4", "R5"]]] == routes.routeChunks.route.name
+        assert [[[], ["R1"], ["R2"], ["R4", "R5"], []]] == routes.routeChunks.route.name
     }
 
 
