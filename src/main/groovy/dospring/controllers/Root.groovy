@@ -1,5 +1,6 @@
 package dospring.controllers
 
+import dospring.controllers.model.CalculatedRoute
 import dospring.service.RouteService
 import dospring.service.StopService
 import dospring.storage.parser.TransportStorage
@@ -25,7 +26,6 @@ class Root {
     @RequestMapping('/city/{city}/stops')
     List<Stop> greeting(@PathVariable("city") String city) {
         if (city == 'chernivtsi') {
-
             return transportStorage.stops.take(10)
         } else {
             return null
@@ -33,16 +33,13 @@ class Root {
     }
 
     @RequestMapping('/city/{city}/route/from/{from}/to/{to}/all')
-    String findRoute(@PathVariable("city") String city,
+    List<CalculatedRoute> findRoute(@PathVariable("city") String city,
                          @PathVariable("from") Point from,
                          @PathVariable("to") Point to) {
         if (city == 'chernivtsi') {
-
-            def routes = routeService.findSimpleRoute(from, to)
-
-            routes.routeChunks.routes.name
+            routeService.findSimpleRoute(from, to)
         } else {
-            "No route for city $city yet!"
+            null
         }
     }
 
