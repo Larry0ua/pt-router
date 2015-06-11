@@ -40,7 +40,7 @@ class Root {
 
             def routes = routeService.findSimpleRoute(from, to)
 
-            routes.routeChunks.route.name
+            routes.routeChunks.routes.name
         } else {
             "No route for city $city yet!"
         }

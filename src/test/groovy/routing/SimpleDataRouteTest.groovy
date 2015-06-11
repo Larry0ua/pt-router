@@ -1,4 +1,4 @@
-package routes
+package routing
 import dospring.controllers.model.CalculatedRoute
 import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
@@ -59,21 +59,21 @@ class SimpleDataRouteTest {
     void "test route between two stops is found"() {
         List<CalculatedRoute> routes = routeService.findSimpleRoute(point1, point2)
 
-        assert [[[], ["R1", "R2"], []]] == routes.routeChunks.route.name
+        assert [[[], ["R1", "R2"], []]] == routes.routeChunks.routes.name
     }
 
     @Test
     void "test longer route between two stops is found"() {
         List<CalculatedRoute> routes = routeService.findSimpleRoute(point1, point4)
 
-        assert [[[], ["R2"], []]] == routes.routeChunks.route.name
+        assert [[[], ["R2"], []]] == routes.routeChunks.routes.name
     }
 
     @Test
     void "test route with one route switch"() {
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point2, point5)
 
-        assert [[[], ["R2"], ["R3"], []]] == routes.routeChunks.route.name
+        assert [[[], ["R2"], ["R3"], []]] == routes.routeChunks.routes.name
     }
 
     @Test
@@ -82,7 +82,7 @@ class SimpleDataRouteTest {
 
         // by 2, then by 5 - should be eliminated
         // by 2, then by 4 or 5
-        assert [[[], ["R2"], ["R4", "R5"], []]] == routes.routeChunks.route.name
+        assert [[[], ["R2"], ["R4", "R5"], []]] == routes.routeChunks.routes.name
     }
 
     @Test
@@ -108,14 +108,14 @@ class SimpleDataRouteTest {
     void "test routes are not duplicated when there are more than one possible point to do a swtich"() {
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(point0, point3)
 
-        assert [[[], ["R1"], ["R2"], []]] == routes.routeChunks.route.name
+        assert [[[], ["R1"], ["R2"], []]] == routes.routeChunks.routes.name
     }
 
     @Test
     void "test route with two switches"() {
         List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(point0, point8)
 
-        assert [[[], ["R1"], ["R2"], ["R4", "R5"], []]] == routes.routeChunks.route.name
+        assert [[[], ["R1"], ["R2"], ["R4", "R5"], []]] == routes.routeChunks.routes.name
     }
 
 
@@ -123,7 +123,7 @@ class SimpleDataRouteTest {
     void "test route with two switches and one gap"() {
         List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(stop10, stop15)
 
-        assert [[["R6"], [], ["R7"], ["R8"]]] == routes.routeChunks.route.name
+        assert [[["R6"], [], ["R7"], ["R8"]]] == routes.routeChunks.routes.name
     }
 
 
@@ -131,7 +131,7 @@ class SimpleDataRouteTest {
     void "test route with two switches and two gaps"() {
         List<CalculatedRoute> routes = routeService.findRouteWithTwoSwitchesAndGaps(stop19, stop17)
 
-        assert [[["R10"], [], ["R8"], [], ["R9"]]] == routes.routeChunks.route.name
+        assert [[["R10"], [], ["R8"], [], ["R9"]]] == routes.routeChunks.routes.name
     }
 
     @Test
@@ -145,14 +145,14 @@ class SimpleDataRouteTest {
     void "test path with 1 switch with a gap"() {
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(stop10, stop13)
 
-        assert [[["R6"], [], ["R7"]]] == routes.routeChunks.route.name
+        assert [[["R6"], [], ["R7"]]] == routes.routeChunks.routes.name
     }
 
     @Test
     void "test path with 1 switch with gap overlapping 2nd route"() {
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(stop12, stop15)
 
-        assert [[["R7"], ["R8"]]] == routes.routeChunks.route.name
+        assert [[["R7"], ["R8"]]] == routes.routeChunks.routes.name
     }
 
     TransportStorage storage

@@ -1,4 +1,4 @@
-package routes
+package routing
 
 import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
@@ -31,13 +31,13 @@ class RealDataRouteTest {
     @Test
     void "test simple route without switches (use 34 only)"() {
         def route = routeService.findSimpleRoute(fastivska, epicentr)
-        assert [[[], ["34"], []]] == route.routeChunks.route.ref
+        assert [[[], ["34"], []]] == route.routeChunks.routes.ref
     }
 
     @Test
     void "test simple route with parallelism (use bus 34 or troll 2)"() {
         def route = routeService.findSimpleRoute(fastivska, mist)
-        assert [[[], ["34", "2"], []]] == route.routeChunks.route.ref
+        assert [[[], ["34", "2"], []]] == route.routeChunks.routes.ref
     }
 
     @Test
@@ -47,7 +47,7 @@ class RealDataRouteTest {
                 [["11", "2", "23"], [], ["36", "37"], []],
                 [[], ["6а", "12"], [], ["36", "37"], []],
                 [[], ["3а", "1а"], ["36", "37"], []]
-        ] == route.routeChunks.route.ref
+        ] == route.routeChunks.routes.ref
     }
 
     @Test
@@ -58,7 +58,7 @@ class RealDataRouteTest {
                 [[], ["3а", "1а"], ["36", "37"], []],
                 [[], ["12"], [], ["36", "37"], []],
                 [[], ["2"], ["37", "28"], []]
-        ] == route.routeChunks.route.ref
+        ] == route.routeChunks.routes.ref
     }
 
     @Test
@@ -69,7 +69,7 @@ class RealDataRouteTest {
                 [["4"], [], ["6а", "11", "2", "23"]],
                 [["4"], [], ["3а", "1а"]],
                 [["4"], [], ["12", "2", "23"], []]
-        ] == route.routeChunks.route.ref
+        ] == route.routeChunks.routes.ref
     }
 
     @BeforeClass

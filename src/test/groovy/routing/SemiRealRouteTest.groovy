@@ -1,4 +1,4 @@
-package routes
+package routing
 
 import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
@@ -45,7 +45,7 @@ class SemiRealRouteTest {
     @Test
     void "test switch is at the farthest possible point"() {
         def route = routeService.findRouteWithOneSwitchWithGaps(s.s1, s.s9)
-        assert [[["1a", "3a"], ["36", "37"]]] == route.routeChunks.route.ref
+        assert [[["1a", "3a"], ["36", "37"]]] == route.routeChunks.routes.ref
     }
 
     @Before

@@ -21,11 +21,11 @@ class CalculatedRoute {
     }
 }
 
-// for walk - route = []
+// for walk - routes = []
 @Immutable(knownImmutableClasses = [Point])
 @ToString
 class RouteChunk {
-    List<Route> route
+    List<Route> routes
     Point start
     Point end
 }
