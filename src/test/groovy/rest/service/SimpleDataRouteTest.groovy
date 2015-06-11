@@ -2,6 +2,7 @@ package rest.service
 import dospring.controllers.model.CalculatedRoute
 import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
+import dospring.service.RouteSimplifierService
 import dospring.service.StopService
 import dospring.storage.parser.TransportDataProvider
 import dospring.storage.parser.TransportStorage
@@ -204,7 +205,11 @@ class SimpleDataRouteTest {
             storage = initialized
 
             stopService = new StopService(maxDistance: 500, transportStorage: storage)
-            routeService = new RouteService(transportStorage: storage, stopService: stopService)
+            routeService = new RouteService(
+                    transportStorage: storage,
+                    stopService: stopService,
+                    routeSimplifierService: new RouteSimplifierService()
+            )
 
         }
     }
