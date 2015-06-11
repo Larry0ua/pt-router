@@ -35,7 +35,7 @@ class RouteService {
                 }
             }
         }
-        dropSimilarRoutes(routes, from, to)
+        dropSimilarRoutes(routes)
     }
 
     List<CalculatedRoute> findRouteWithOneSwitchWithGaps(Point fromPoint, Point toPoint) {
@@ -90,7 +90,7 @@ class RouteService {
             }
         }
 
-        dropSimilarRoutes(routes, fromPoint, toPoint)
+        dropSimilarRoutes(routes)
     }
 
     // find routes that differ in intermediate point only. Leave only one - where this point is farther from the start
@@ -165,10 +165,10 @@ class RouteService {
             }
         }
 
-        dropSimilarRoutes(routes, fromPoint, toPoint)
+        dropSimilarRoutes(routes)
     }
 
-    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes, Point start, Point end) {
+    private static List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes) {
         List<CalculatedRoute> routesToRemove = []
         List<CalculatedRoute> processed = []
         for (int i = 0; i < routes.size() - 1; i++) {
@@ -176,27 +176,36 @@ class RouteService {
             if (processed.contains(r1)) {
                 continue
             }
-            List<CalculatedRoute> similar = []
-            for (int j = i + 1; j < routes.size(); j++) {
-                def r2 = routes[j]
-                if (r1.routeChunks.size() != r2.routeChunks.size()) {
-                    continue
-                }
-                if ((0..<(r1.routeChunks.size())).every {Integer idx ->
-                    routesSimilar(r1.routeChunks[idx].route, r2.routeChunks[idx].route)}) {
+            List<CalculatedRoute> similar = [r1]
 
-                    similar << r2
+            while(true) {
+                def similarStep = []
+                routes.findAll {
+                        !similar.contains(it) && !processed.contains(it) &&
+                            r1.routeChunks.count {it.route } == it.routeChunks.count { it.route }
                 }
+                .each { test ->
+                    if (similar.any { orig ->
+                        List<RouteChunk> copyChunks1 = orig.routeChunks.findAll { it.route }
+                        List<RouteChunk> copyChunks2 = test.routeChunks.findAll { it.route }
+                        (0..<copyChunks1.size()).every { Integer idx ->
+                            routesSimilar(copyChunks1[idx].route, copyChunks2[idx].route)
+                        }
+                    }) {
+                        similarStep << test
+                    }
+                }
+                similar.addAll(similarStep)
+                if (!similarStep) break
             }
-            if (!similar.empty) {
-                similar << r1
-                r1.routeChunks.collect{it.route.size()}.inject(1, {a,b->a*b})
+
+            if (similar.size() != 1) {
                 processed += similar
                 // max by multiplication of the |routes|
                 similar.sort {r -> r.routeChunks.sum {it.end - r.routeChunks.last().end}} // least important - route chunk ends as close to the destination as possible
                 similar.sort {it.routeChunks.findAll {!it.route}.sum {it.start - it.end}} // then by overall walk distance
-                similar.sort {it.routeChunks.collect {it.route.size()}.inject (0, {a,b->a*b})} // most important - more routes for the path
-                def winner = similar[0]
+                similar.sort {it.routeChunks.collect {it.route.size()}.inject (-1, {a,b->a*b})} // most important - more routes for the path
+                def winner = similar.first()
                 routesToRemove += similar - winner
             }
         }
@@ -210,7 +219,7 @@ class RouteService {
         def intersects = r1.intersect(r2).size()
         if (intersects >= 2)
             return true
-        if (intersects == 1 && (r1.size() == 1 || r2.size() == 1)) {
+        if (intersects == 1 && (r1.size() <= 2 || r2.size() <= 2)) {
             return true
         }
         false

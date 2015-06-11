@@ -5,12 +5,10 @@ import dospring.service.RouteService
 import dospring.service.StopService
 import dospring.storage.parser.TransportDataProvider
 import dospring.storage.parser.TransportStorage
-import drawing.RouteDrawer
 import model.Point
 import model.Route
 import model.Stop
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 class SimpleDataRouteTest {
@@ -154,14 +152,6 @@ class SimpleDataRouteTest {
         List<CalculatedRoute> routes = routeService.findRouteWithOneSwitchWithGaps(stop12, stop15)
 
         assert [[["R7"], ["R8"]]] == routes.routeChunks.route.name
-    }
-
-    @Test
-    @Ignore
-    void drawRoutes() {
-        def drawer = new RouteDrawer()
-
-        storage.routes.each {drawer.drawRoute(it, "${it.id}.png")}
     }
 
     TransportStorage storage
