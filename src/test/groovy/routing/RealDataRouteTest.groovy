@@ -1,5 +1,4 @@
 package routing
-
 import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
@@ -8,7 +7,6 @@ import dospring.storage.parser.TransportDataProvider
 import dospring.storage.parser.TransportStorage
 import model.Point
 import org.junit.BeforeClass
-import org.junit.Ignore
 import org.junit.Test
 
 class RealDataRouteTest {
@@ -51,13 +49,14 @@ class RealDataRouteTest {
     }
 
     @Test
-    @Ignore
     void "test route with one switch (to center, from center)"() {
         def route = routeService.findRouteWithOneSwitchWithGaps(prospHolovna, chornivka)
         assert [
-                [[], ["3а", "1а"], ["36", "37"], []],
-                [[], ["12"], [], ["36", "37"], []],
-                [[], ["2"], ["37", "28"], []]
+                [[], ["3", "3а", "5", "38", "1а", "1", "44"], ["36", "37"], []],
+                [[], ["39"], [], ["36", "37"], []],
+                [[], ["1"], ["37", "28"], []],
+                [[], ["1", "9"], [], ["36", "37"], []],
+                [[], ["29"], [], ["36", "37"], []]
         ] == route.routeChunks.routes.ref
     }
 

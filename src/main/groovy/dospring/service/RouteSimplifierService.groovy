@@ -8,12 +8,15 @@ class RouteSimplifierService {
 
     List<CalculatedRoute> dropSimilarRoutes(List<CalculatedRoute> routes) {
 
-        def similars = groupBySimilarity(routes, { CalculatedRoute orig, CalculatedRoute test ->
+        def routes2 = groupBySimilarity(routes, { CalculatedRoute orig, CalculatedRoute test ->
             List<RouteChunk> copy1 = orig.routeChunks.findAll { it.routes }
             List<RouteChunk> copy2 = test.routeChunks.findAll { it.routes }
             copy1.size() == copy2.size() && (0..<copy1.size()).every{Integer idx -> copy1[idx].routes == copy2[idx].routes}
-        })
-        def routes2 = similars.collect { group -> group.sort { it.routeChunks.sum{ it.start - it.end}}.first()}
+        }).collect {
+            group -> group.sort {
+                it.routeChunks.sum{ it.start - it.end} + (it.routeChunks.findAll{!it.routes}.sum{it.start - it.end}?:0) * 10
+            }.first()
+        }
 
         def routes3 = groupBySimilarity(routes2, { CalculatedRoute orig, CalculatedRoute test ->
             List<RouteChunk> copy1 = orig.routeChunks.findAll { it.routes }
@@ -26,7 +29,7 @@ class RouteSimplifierService {
         routes3
     }
 
-    private List<List<CalculatedRoute>> groupBySimilarity(List<CalculatedRoute> routes, Closure<Boolean> areSimilar) {
+    private static List<List<CalculatedRoute>> groupBySimilarity(List<CalculatedRoute> routes, Closure<Boolean> areSimilar) {
         def result = []
         def processed = []
         routes.each { r1 ->
