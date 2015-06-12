@@ -17,7 +17,7 @@ class CalculatedRoute {
     def CalculatedRoute append(RouteChunk chunk) {
         def copy = new ArrayList<>(this.routeChunks)
         copy.add(chunk)
-        return new CalculatedRoute(copy)
+        return createRoute(copy)
     }
 }
 

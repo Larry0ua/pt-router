@@ -40,7 +40,14 @@ class Route {
                 closure.call(platforms[it])
             }
         }
+    }
 
+    def countBetween(Point begin, Point end) {
+        int idx1 = platforms.indexOf(begin)
+        int idx2 = platforms.indexOf(end)
+        if (idx1 < 0 || idx2 < 0)
+            return 0
+        Math.abs(idx1-idx2)
     }
 
     boolean contains(Stop p) {
