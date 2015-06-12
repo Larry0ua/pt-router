@@ -41,16 +41,35 @@ $(document).ready(function() {
 });
 
 function process(data) {
-    var s = ''
+    $("#main").empty()
     for (var i=0;i<data.length;i++) {
         var route = data[i]
-        s += 'Path:<br>'
+        var item = $("<div class='item'>")
+        // TODO: escape data strings before adding to html
         for (var j=0; j<route.routeChunks.length; j++) {
             var chunk = route.routeChunks[j]
-            s += chunk.start.lat + ',' + chunk.start.lon + ' to ' + chunk.end.lat + ',' + chunk.end.lon + '<br>';
+            if (chunk.routes.length == 0) {
+                item.append('Walk ' + distance(chunk.start, chunk.end) + ' m<br>')
+            } else {
+                s = 'Use '
+                s += chunk.routes[0].name
+                for (var t=1;t<chunk.routes.length;t++) {
+                    s += ' or ' + chunk.routes[t].name
+                }
+                s += ' from platform ' + chunk.start.name + ' to platform ' + chunk.end.name + '<br>'
+                item.append(s)
+            }
         }
-        s += '<br>'
+        $("#main").append(item)
     }
-
-    $("#main").append(s)
+}
+function distance(a,b) {
+    var dist = Math.sqrt(Math.pow(a.lat - b.lat, 2) + Math.pow(a.lon - b.lon, 2)) * Math.PI * 6.4e6 / 180.0;
+    if (dist > 1000) {
+        return Math.round(dist / 100) * 100
+    }
+    if (dist > 10) {
+        return Math.round(dist / 10) * 10
+    }
+    return 10
 }
