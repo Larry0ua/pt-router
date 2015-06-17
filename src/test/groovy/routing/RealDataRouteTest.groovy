@@ -1,5 +1,5 @@
 package routing
-import dospring.processor.matrix.MatrixProcess
+
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
 import dospring.service.StopService
@@ -43,8 +43,8 @@ class RealDataRouteTest {
         def route = routeService.findRouteWithOneSwitchWithGaps(end1a, chornivka)
         assert [
                 [["11", "2", "23"], [], ["36", "37"], []],
-                [[], ["6а", "12"], [], ["36", "37"], []],
-                [[], ["3а", "1а"], ["36", "37"], []]
+                [[], ["12", "6а"], [], ["36", "37"], []],
+                [[], ["1а", "3а"], ["36", "37"], []]
         ] == route.routeChunks.routes.ref
     }
 
@@ -52,10 +52,10 @@ class RealDataRouteTest {
     void "test route with one switch (to center, from center)"() {
         def route = routeService.findRouteWithOneSwitchWithGaps(prospHolovna, chornivka)
         assert [
-                [[], ["3", "3а", "5", "38", "1а", "1", "44"], ["36", "37"], []],
+                [[], ["1", "1а", "38", "44", "3", "3а", "5"], ["36", "37"], []],
+                [[], ["1"], ["28", "37"], []],
                 [[], ["39"], [], ["36", "37"], []],
-                [[], ["1"], ["37", "28"], []],
-                [[], ["1", "9"], [], ["36", "37"], []],
+                [[], ["9", "1"], [], ["36", "37"], []],
                 [[], ["29"], [], ["36", "37"], []]
         ] == route.routeChunks.routes.ref
     }
@@ -65,8 +65,8 @@ class RealDataRouteTest {
         def route = routeService.findRouteWithOneSwitchWithGaps(cecyno, end1a)
 
         assert [
-                [["4"], [], ["6а", "11", "2", "23"]],
-                [["4"], [], ["3а", "1а"]],
+                [["4"], [], ["11", "2", "23", "6а"]],
+                [["4"], [], ["1а", "3а"]],
                 [["4"], [], ["12", "2", "23"], []]
         ] == route.routeChunks.routes.ref
     }
@@ -74,7 +74,6 @@ class RealDataRouteTest {
     @BeforeClass
     static void loadData() {
         TransportStorage transportStorage = new TransportStorage(
-                matrixProcess: new MatrixProcess(),
                 maxDistance: 500,
                 filename: "transport_test.osm",
                 transportDataProvider: new TransportDataProvider()

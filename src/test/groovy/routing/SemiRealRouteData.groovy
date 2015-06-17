@@ -1,5 +1,5 @@
 package routing
-import dospring.processor.matrix.MatrixProcess
+
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
 import dospring.service.StopService
@@ -45,7 +45,6 @@ class SemiRealRouteData {
     @Before
     void setupTransport() {
         TransportStorage initialized = new TransportStorage(
-                matrixProcess: new MatrixProcess(),
                 maxDistance: 2000,
                 filename: "transport_ch.osm", // not used - all data is from provider below
                 transportDataProvider: new TransportDataProvider() {

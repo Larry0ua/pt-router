@@ -1,6 +1,5 @@
 package routing
 import dospring.controllers.model.CalculatedRoute
-import dospring.processor.matrix.MatrixProcess
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
 import dospring.service.StopService
@@ -165,7 +164,6 @@ class SimpleDataRouteTest {
     void mockTransportProvider() {
         if (storage == null) {
             TransportStorage initialized = new TransportStorage(
-                    matrixProcess: new MatrixProcess(),
                     maxDistance: 2000,
                     filename: "transport_ch.osm", // not used - all data is from provider below
                     transportDataProvider: new TransportDataProvider() {
