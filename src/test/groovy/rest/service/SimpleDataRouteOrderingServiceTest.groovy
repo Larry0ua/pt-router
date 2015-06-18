@@ -17,6 +17,6 @@ class SimpleDataRouteOrderingServiceTest extends SemiRealRouteData {
 
     @Before
     void initOrderingService() {
-        routeOrderingService = new RouteOrderingService()
+        routeOrderingService = new RouteOrderingService(stopTime: 2, walkSpeed: 6, switchTime: 10)
     }
 }
