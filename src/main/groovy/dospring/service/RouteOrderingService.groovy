@@ -18,7 +18,7 @@ class RouteOrderingService {
     @Value('${order.stop.time}')
     Integer stopTime
 
-    List<CalculatedRoute> sortRoutes(List<CalculatedRoute> routes) {
+    Map<CalculatedRoute, BigDecimal> calculateRouteTimes(List<CalculatedRoute> routes) {
         // time for route: 10 * number of switches from route to route + 2 * each stop travelled (average) + 6 * distance walked (km)
         Map<CalculatedRoute, BigDecimal> sortedRoutes = routes.collectEntries {[it,
                                 switchTime * it.routeChunks.count{it.routes} + // each route switch would take 10 minutes
@@ -27,6 +27,6 @@ class RouteOrderingService {
                                     rc.routes.sum{Route r-> r.countBetween(rc.start, rc.end)} / rc.routes.size()
                                 }?:0) // 2 * average count of stops travelled
         ]}
-        sortedRoutes.sort {it.value}.keySet().toList()
+        sortedRoutes.sort {it.value}
     }
 }

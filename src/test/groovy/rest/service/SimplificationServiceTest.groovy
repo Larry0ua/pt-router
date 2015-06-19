@@ -2,9 +2,11 @@ package rest.service
 
 import dospring.controllers.model.CalculatedRoute
 import dospring.controllers.model.RouteChunk
+import dospring.service.RouteOrderingService
 import dospring.service.RouteSimplifierService
 import model.Point
 import model.Route
+import model.Stop
 import org.junit.Before
 import org.junit.Test
 
@@ -14,9 +16,12 @@ class SimplificationServiceTest {
     Point p2 = new Point(lat:0,lon:1)
     Point p3 = new Point(lat:0,lon:2)
     Point p4 = new Point(lat:0,lon:3)
-    Route r1 = new Route(ref:"1")
-    Route r2 = new Route(ref:"2")
-    Route r3 = new Route(ref:"3")
+    Stop  s1 = new Stop(lat:0, lon:0, name:'s1')
+    Stop  s2 = new Stop(lat:0, lon:1, name:'s2')
+    Stop  s3 = new Stop(lat:0, lon:2, name:'s3')
+    Route r1 = new Route(ref:"1", platforms: [s1, s2])
+    Route r2 = new Route(ref:"2", platforms: [s2, s3])
+    Route r3 = new Route(ref:"3", platforms: [s2, s3])
     Route r4 = new Route(ref:"4")
     Route r5 = new Route(ref:"5")
 
@@ -40,6 +45,7 @@ class SimplificationServiceTest {
 
     @Before
     void init() {
-        service = new RouteSimplifierService()
+        def orderingService = new RouteOrderingService(walkSpeed: 6, stopTime: 2, switchTime: 10)
+        service = new RouteSimplifierService(mergeThreshold: 5, orderingService: orderingService)
     }
 }

@@ -1,4 +1,6 @@
 package routing
+
+import dospring.service.RouteOrderingService
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
 import dospring.service.StopService
@@ -48,10 +50,12 @@ class SemiRealRouteData {
         )
 
         stopService = new StopService(maxDistance: 500, transportStorage: storage)
+        def orderingService = new RouteOrderingService(walkSpeed: 6, stopTime: 2, switchTime: 10)
+        def simplifierService = new RouteSimplifierService(mergeThreshold: 5, orderingService: orderingService)
         routeService = new RouteService(
                 transportStorage: storage,
                 stopService: stopService,
-                routeSimplifierService: new RouteSimplifierService()
+                routeSimplifierService: simplifierService
         )
     }
 }

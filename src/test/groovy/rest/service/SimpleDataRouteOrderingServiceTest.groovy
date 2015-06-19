@@ -11,8 +11,8 @@ class SimpleDataRouteOrderingServiceTest extends SemiRealRouteData {
     @Test
     void "test simple route ordering"() {
         def routes = routeService.findRouteWithOneSwitchWithGaps(s.s1, s.s9)
-        routes = routeOrderingService.sortRoutes(routes)
-        assert [[["1a", "3a"], ["36", "37"]], [[], ["12"], ["36", "37"]]] == routes.routeChunks.routes.ref
+        routes = routeOrderingService.calculateRouteTimes(routes)
+        assert [[["1a", "3a"], ["36", "37"]], [[], ["12"], ["36", "37"]]] == routes.keySet().toList().routeChunks.routes.ref
     }
 
     @Before

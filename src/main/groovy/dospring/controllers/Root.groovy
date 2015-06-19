@@ -28,10 +28,10 @@ class Root {
         return transportStorage.stops.take(10)
     }
 
-    @RequestMapping('/route/from/{from}/to/{to}/switch/{switch}')
+    @RequestMapping('/route/from/{from}/to/{to}/switches/{switches}')
     List<CalculatedRoute> findRoute(@PathVariable("from") Point from,
                                     @PathVariable("to") Point to,
-                                    @PathVariable("switch") Integer switches) {
+                                    @PathVariable("switches") Integer switches) {
         switch (switches) {
             case null:
             case 0:

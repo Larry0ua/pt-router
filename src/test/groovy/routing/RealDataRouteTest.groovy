@@ -1,5 +1,6 @@
 package routing
 
+import dospring.service.RouteOrderingService
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
 import dospring.service.StopService
@@ -75,15 +76,17 @@ class RealDataRouteTest {
     static void loadData() {
         TransportStorage transportStorage = new TransportStorage(
                 maxWalkDistance: 500,
-                definedCities: ["test":"transport_test.osm"],
+                definedCities: "transport_test.osm",
                 transportDataProvider: new TransportDataProvider()
         )
         transportStorage.init()
         stopService = new StopService(maxDistance: 500, transportStorage: transportStorage)
+        def orderingService = new RouteOrderingService(walkSpeed: 6, stopTime: 2, switchTime: 10)
+        def simplifierService = new RouteSimplifierService(mergeThreshold: 5, orderingService: orderingService)
         routeService = new RouteService(
                 transportStorage: transportStorage,
                 stopService: stopService,
-                routeSimplifierService: new RouteSimplifierService()
+                routeSimplifierService: simplifierService
         )
     }
 }
