@@ -21,7 +21,7 @@ class TransportStorage {
     double maxWalkDistance
 
     @Value('${cities}')
-    Map<String, String> definedCities
+    String definedCities
 
     @Autowired
     TransportDataProvider transportDataProvider
@@ -30,8 +30,8 @@ class TransportStorage {
     def init() {
         def allRoutesMap = [:]
         def allStopsMap  = [:]
-        definedCities.each {
-            def out = transportDataProvider.parseFile(it.value)
+        definedCities.split(',').each {
+            def out = transportDataProvider.parseFile(it.trim())
             allRoutesMap.putAll(out[0])
             allStopsMap.putAll(out[1])
         }

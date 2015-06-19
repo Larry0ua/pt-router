@@ -1,5 +1,4 @@
-cities:
-	chernivtsi: transport_ch.osm
+cities: transport_ch.osm
 
 maxDist: 2000 #2km
 
