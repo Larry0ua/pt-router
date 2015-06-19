@@ -23,35 +23,35 @@ class Root {
     @Autowired
     RouteService routeService
 
-    @RequestMapping('/city/{city}/stops')
-    List<Stop> greeting(@PathVariable("city") String city) {
-        if (city == 'chernivtsi') {
-            return transportStorage.stops.take(10)
-        } else {
-            return null
+    @RequestMapping('/stops')
+    List<Stop> someStops() {
+        return transportStorage.stops.take(10)
+    }
+
+    @RequestMapping('/route/from/{from}/to/{to}/switch/{switch}')
+    List<CalculatedRoute> findRoute(@PathVariable("from") Point from,
+                                    @PathVariable("to") Point to,
+                                    @PathVariable("switch") Integer switches) {
+        switch (switches) {
+            case null:
+            case 0:
+                return routeService.findSimpleRoute(from, to)
+            case 1:
+                return routeService.findRouteWithOneSwitchWithGaps(from, to)
+            case 2:
+                return routeService.findRouteWithTwoSwitchesAndGaps(from, to)
+            default:
+                return null
         }
     }
 
-    @RequestMapping('/city/{city}/route/from/{from}/to/{to}/all')
-    List<CalculatedRoute> findRoute(@PathVariable("city") String city,
-                         @PathVariable("from") Point from,
-                         @PathVariable("to") Point to) {
-        if (city == 'chernivtsi') {
-            routeService.findSimpleRoute(from, to)
-        } else {
-            null
-        }
-    }
-
-    @RequestMapping("/city/{city}/stop/{stop}/nearest")
-    String findStop(@PathVariable("city") String city,
-                        @PathVariable("stop") Point point) {
+    @RequestMapping("/stop/{stop}/nearest")
+    String findStop(@PathVariable("stop") Point point) {
         stopService.findNearestStop(point)?:"Not Found"
     }
 
-    @RequestMapping("/city/{city}/stop/{stop}/all")
-    String findNearestStops(@PathVariable("city") String city,
-                            @PathVariable("stop") Point point) {
+    @RequestMapping("/stop/{stop}/all")
+    String findNearestStops(@PathVariable("stop") Point point) {
         stopService.findNearestStops(point)
     }
 }

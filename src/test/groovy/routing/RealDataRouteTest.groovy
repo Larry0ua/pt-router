@@ -74,8 +74,8 @@ class RealDataRouteTest {
     @BeforeClass
     static void loadData() {
         TransportStorage transportStorage = new TransportStorage(
-                maxDistance: 500,
-                filename: "transport_test.osm",
+                maxWalkDistance: 500,
+                definedCities: ["test":"transport_test.osm"],
                 transportDataProvider: new TransportDataProvider()
         )
         transportStorage.init()

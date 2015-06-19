@@ -1,6 +1,8 @@
-filename: transport_ch.osm
+cities:
+	chernivtsi: transport_ch.osm
+
 maxDist: 2000 #2km
 
-order.switch.time=10 # minutes to switch from one route to another
-order.walk.speed=6   # minutes per km
-order.stop.time=2    # minutes between stops, average
+order.switch.time: 10 # minutes to switch from one route to another
+order.walk.speed: 6   # minutes per km
+order.stop.time: 2    # minutes between stops, average

@@ -10,36 +10,41 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @Component
-@Scope() // singleton
+@Scope
 class TransportStorage {
 
     Collection<Route> routes
     Collection<Stop> stops
     Map<Stop, Map<Stop, Double>> walkMatrix
 
-    @Value('${filename}')
-    String filename
-
     @Value('${maxDist}')
-    double maxDistance
+    double maxWalkDistance
+
+    @Value('${cities}')
+    Map<String, String> definedCities
 
     @Autowired
     TransportDataProvider transportDataProvider
 
     @PostConstruct
     def init() {
-        transportDataProvider.parseFile(filename)
-        this.routes = transportDataProvider.routes.sort()
-        this.stops = transportDataProvider.stops
+        def allRoutesMap = [:]
+        def allStopsMap  = [:]
+        definedCities.each {
+            def out = transportDataProvider.parseFile(it.value)
+            allRoutesMap.putAll(out[0])
+            allStopsMap.putAll(out[1])
+        }
 
-        walkMatrix = prepareWalkMatrix(stops)
+        routes = allRoutesMap.values().sort()
+        stops = allStopsMap.values().sort()
     }
 
-    Map<Stop, Map<Stop, Double>> prepareWalkMatrix(Collection<Stop> stops) {
+    Map<Stop, Map<Stop, Double>> prepareWalkMatrix() {
         Map<Stop, Map<Stop, Double>> result = [:]
         stops.each { f ->
             stops.each { t ->
-                if (f != t && (f - t) < maxDistance) {
+                if (f != t && (f - t) < maxWalkDistance) {
                     if (result[f] == null) {
                         result[f] = [:]
                     }
@@ -47,6 +52,6 @@ class TransportStorage {
                 }
             }
         }
-        result
+        walkMatrix = result
     }
 }

@@ -1,18 +1,14 @@
 package dospring.storage.parser
-
 import model.Route
 import model.Stop
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
-@Component
+@Service
 class TransportDataProvider {
 
-    Collection<Stop> stops
-    Collection<Route> routes
-
     def parseFile(String filename) {
-        Map<String, Stop> stopsMap = [:]
-        List<Route> routes = []
+        Map<String, Stop> stops = [:]
+        Map<String, Route> routes = [:]
 
         List<String> supportedTypes = ['bus', 'trolleybus', 'share_taxi', 'tram']
 
@@ -20,7 +16,7 @@ class TransportDataProvider {
                 filename: this.class.classLoader.getResource(filename).toString(),
                 processNode: { attributes, tags ->
                     if (tags.public_transport == 'platform' || tags.highway == 'bus_stop') {
-                        stopsMap[attributes.id] = new Stop(
+                        stops[attributes.id] = new Stop(
                                 lat: attributes.lat.toDouble(),
                                 lon: attributes.lon.toDouble(),
                                 id: attributes.id,
@@ -30,16 +26,16 @@ class TransportDataProvider {
                 },
                 processRelation: { attributes, tags, members ->
                     if (tags.type == 'route' && tags.route in supportedTypes) {
-                        Collection<Stop> stops = []
+                        Collection<Stop> routeStops = []
                         members.findAll {it.type == 'node' && it.role.startsWith('platform')}*.ref.each { String id ->
-                            if (stopsMap[id]) {
-                                stops << stopsMap[id]
+                            if (stops[id]) {
+                                routeStops << stops[id]
                             } else {
                                 println "Stop not found $id"
                             }
                         }
-                        routes << new Route(
-                                platforms: stops,
+                        routes[attributes.id] = new Route(
+                                platforms: routeStops,
                                 ref: tags.ref,
                                 type: tags.route,
                                 name: tags.name,
@@ -48,7 +44,6 @@ class TransportDataProvider {
                     }
                 }
         ).process()
-        this.stops = stopsMap.values()
-        this.routes = routes
+        [routes, stops]
     }
 }

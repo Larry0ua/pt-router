@@ -1,9 +1,7 @@
 package routing
-
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
 import dospring.service.StopService
-import dospring.storage.parser.TransportDataProvider
 import dospring.storage.parser.TransportStorage
 import model.Route
 import model.Stop
@@ -11,7 +9,6 @@ import org.junit.Before
 
 class SemiRealRouteData {
 
-    TransportStorage storage
     StopService stopService
     RouteService routeService
 
@@ -44,21 +41,11 @@ class SemiRealRouteData {
 
     @Before
     void setupTransport() {
-        TransportStorage initialized = new TransportStorage(
-                maxDistance: 2000,
-                filename: "transport_ch.osm", // not used - all data is from provider below
-                transportDataProvider: new TransportDataProvider() {
-                    @Override
-                    def parseFile(String filename) {
-
-
-                        setStops(s.values())
-                        setRoutes(r)
-                    }
-                }
+        TransportStorage storage = new TransportStorage(
+                maxWalkDistance: 2000,
+                stops : s.values(),
+                routes: r
         )
-        initialized.init()
-        storage = initialized
 
         stopService = new StopService(maxDistance: 500, transportStorage: storage)
         routeService = new RouteService(

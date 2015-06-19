@@ -3,7 +3,6 @@ import dospring.controllers.model.CalculatedRoute
 import dospring.service.RouteService
 import dospring.service.RouteSimplifierService
 import dospring.service.StopService
-import dospring.storage.parser.TransportDataProvider
 import dospring.storage.parser.TransportStorage
 import model.Point
 import model.Route
@@ -154,7 +153,6 @@ class SimpleDataRouteTest {
         assert [[["R7"], ["R8"]]] == routes.routeChunks.routes.name
     }
 
-    TransportStorage storage
     RouteService routeService
     StopService stopService
 
@@ -162,53 +160,42 @@ class SimpleDataRouteTest {
 
     @Before
     void mockTransportProvider() {
-        if (storage == null) {
-            TransportStorage initialized = new TransportStorage(
-                    maxDistance: 2000,
-                    filename: "transport_ch.osm", // not used - all data is from provider below
-                    transportDataProvider: new TransportDataProvider() {
-                        @Override
-                        def parseFile(String filename) {
+        TransportStorage storage = new TransportStorage(
+                maxWalkDistance: 2000,
+                stops: [stop0, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8,
+                                stop10, stop11, stop12, stop13, stop14, stop15, stop16, stop17, stop18, stop19
+                        ],
+                routes: [
+                                new Route(name: "R1", id:1, type: "bus", platforms: [stop0, stop1, stop2]),
+                                new Route(name: "R2", id:2, type: "bus", platforms: [stop1, stop2, stop3, stop4]),
+                                new Route(name: "R3", id:3, type: "bus", platforms: [stop3, stop4, stop5, stop6]),
+                                new Route(name: "R4", id:4, type: "bus", platforms: [stop4, stop7, stop8]),
+                                new Route(name: "R5", id:5, type: "bus", platforms: [stop3, stop4, stop7, stop8]),
+                                new Route(name: "R6", id:6, type: "bus", platforms: [stop10, stop11]),
+                                new Route(name: "R7", id:7, type: "bus", platforms: [stop12, stop13]),
+                                new Route(name: "R8", id:8, type: "bus", platforms: [stop13, stop14, stop15]),
+                                new Route(name: "R9", id:9, type: "bus", platforms: [stop16, stop17]),
+                                new Route(name: "R10",id:10,type: "bus", platforms: [stop19, stop18]),
+                        ]
+        )
+                        /*
+                        0(1) -> 1(1,2) -> 2(1,2) -> 3(2,3,5) -> 4(2,3,4,5) -> 5(3) -> 6(3)
+                                                                |
+                                                                \-> 7(4,5) -> 8(4,5)
+
+                        10 (6) -> 11 (6) .. 12 (7) -> 13 (7,8) .. 14 (8) -> 15 (8) .. 16 (9) -> 17(9)
+                                                                   ..
+                                                                  18 (10)
+                                                                  19 (10)
+                         */
 
 
-                            setStops([stop0, stop1, stop2, stop3, stop4, stop5, stop6, stop7, stop8,
-                                    stop10, stop11, stop12, stop13, stop14, stop15, stop16, stop17, stop18, stop19
-                            ])
-                            setRoutes([
-                                    new Route(name: "R1", id:1, type: "bus", platforms: [stop0, stop1, stop2]),
-                                    new Route(name: "R2", id:2, type: "bus", platforms: [stop1, stop2, stop3, stop4]),
-                                    new Route(name: "R3", id:3, type: "bus", platforms: [stop3, stop4, stop5, stop6]),
-                                    new Route(name: "R4", id:4, type: "bus", platforms: [stop4, stop7, stop8]),
-                                    new Route(name: "R5", id:5, type: "bus", platforms: [stop3, stop4, stop7, stop8]),
-                                    new Route(name: "R6", id:6, type: "bus", platforms: [stop10, stop11]),
-                                    new Route(name: "R7", id:7, type: "bus", platforms: [stop12, stop13]),
-                                    new Route(name: "R8", id:8, type: "bus", platforms: [stop13, stop14, stop15]),
-                                    new Route(name: "R9", id:9, type: "bus", platforms: [stop16, stop17]),
-                                    new Route(name: "R10",id:10,type: "bus", platforms: [stop19, stop18]),
-                            ])
-                            /*
-                            0(1) -> 1(1,2) -> 2(1,2) -> 3(2,3,5) -> 4(2,3,4,5) -> 5(3) -> 6(3)
-                                                                    |
-                                                                    \-> 7(4,5) -> 8(4,5)
+        stopService = new StopService(maxDistance: 500, transportStorage: storage)
+        routeService = new RouteService(
+                transportStorage: storage,
+                stopService: stopService,
+                routeSimplifierService: new RouteSimplifierService()
+        )
 
-                            10 (6) -> 11 (6) .. 12 (7) -> 13 (7,8) .. 14 (8) -> 15 (8) .. 16 (9) -> 17(9)
-                                                                       ..
-                                                                      18 (10)
-                                                                      19 (10)
-                             */
-                        }
-                    }
-            )
-            initialized.init()
-            storage = initialized
-
-            stopService = new StopService(maxDistance: 500, transportStorage: storage)
-            routeService = new RouteService(
-                    transportStorage: storage,
-                    stopService: stopService,
-                    routeSimplifierService: new RouteSimplifierService()
-            )
-
-        }
     }
 }
