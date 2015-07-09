@@ -1,6 +1,6 @@
 cities: transport_ch.osm
 
-maxDist: 2000 #2km
+maxDist: 800
 
 order:
     switch.time: 10 # minutes to switch from one route to another
