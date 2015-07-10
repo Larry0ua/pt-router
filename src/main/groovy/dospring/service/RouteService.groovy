@@ -71,26 +71,34 @@ class RouteService {
             return []
         }
 
-        [from, intermediatePoints, to].eachCombination { Stop p1, Stop p2, Stop p3 ->
-            // intermediate points are tied to start points by routes. Find routes1, then find nearest stops to these intermediate and check routes2 from these nearest stops
-            def routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
+        from.each { Stop p1 ->
+            intermediatePoints.each { Stop p2 ->
+                // intermediate points are tied to start points by routes. Find routes1, then find nearest stops to these intermediate and check routes2 from these nearest stops
+                def routes1 = routesStart.findAll { r -> r.isAfter(p1, p2) }
 
-            Collection<Stop> nearIntermediate = stopService.findNearestStops(p2)
-            nearIntermediate.each { Stop p2walk ->
+                if (routes1) {
+                    Collection<Stop> nearIntermediate = stopService.findNearestStops(p2)
+                    nearIntermediate.each { Stop p2walk ->
 
-                // should not print routes in which we would walk and use same route as was on the previous stop
-                def routes2 = routesEnd.findAll { r -> r.isAfter(p2walk, p3) }
+                        to.each { Stop p3 ->
 
-                if (routes1 && routes2
-                        && !routes1.intersect(routes2)  // TODO: think about replacing with routes2.containsAll(routes1)
-                        && (!routes2.every {r -> r.contains(p2)} || p2 == p2walk)) { // no need to walk if this gap is covered by all routes
-                    routes << CalculatedRoute.createRoute([
-                            new RouteChunk([], fromPoint, p1),
-                            new RouteChunk(routes1, p1, p2),
-                            new RouteChunk([], p2, p2walk),
-                            new RouteChunk(routes2, p2walk, p3),
-                            new RouteChunk([], p3, toPoint)
-                    ])
+                            // should not print routes in which we would walk and use same route as was on the previous stop
+                            def routes2 = routesEnd.findAll { r -> r.isAfter(p2walk, p3) }
+
+                            if (routes2
+                                    && !routes1.intersect(routes2)  // TODO: think about replacing with routes2.containsAll(routes1)
+                                    && (p2 == p2walk || !routes2.every { r -> r.contains(p2) })) {
+                                // no need to walk if this gap is covered by all routes
+                                routes << CalculatedRoute.createRoute([
+                                        new RouteChunk([], fromPoint, p1),
+                                        new RouteChunk(routes1, p1, p2),
+                                        new RouteChunk([], p2, p2walk),
+                                        new RouteChunk(routes2, p2walk, p3),
+                                        new RouteChunk([], p3, toPoint)
+                                ])
+                            }
+                        }
+                    }
                 }
             }
         }
