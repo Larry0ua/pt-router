@@ -26,11 +26,9 @@ class RouteService {
         def stopsFrom = stopService.findNearestStops(from)
         def stopsTo = stopService.findNearestStops(to)
 
-        def routesFrom = transportStorage.routes.findAll {stopsFrom.any{stop->it.contains(stop)}}
-
         stopsFrom?.each { f ->
             stopsTo?.each { t ->
-                def rts = routesFrom.findAll {it.isAfter(f, t)}
+                def rts = transportStorage.matrix[f][t]
                 if (rts) {
                     routes << CalculatedRoute.createRoute([
                             new RouteChunk([], from, f),

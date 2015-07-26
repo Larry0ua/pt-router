@@ -16,6 +16,9 @@ class TransportStorage {
     Collection<Route> routes
     Collection<Stop> stops
     Map<Stop, Map<Stop, Double>> walkMatrix
+    Map<Stop, Map<Stop, Set<Route>>> matrix
+    Map<Stop, Set<Route>> stopsToRoutes
+    StopsStorage stopsStorage
 
     @Value('${maxDist}')
     double maxWalkDistance
@@ -38,6 +41,25 @@ class TransportStorage {
 
         routes = allRoutesMap.values().sort()
         stops = allStopsMap.values().sort()
+
+        stopsStorage = new StopsStorage()
+        stopsStorage.putAll(stops)
+
+        stopsToRoutes = [:].withDefault { [].toSet() }
+        routes.each { Route it ->
+            it.platforms.each { Stop stop ->
+                stopsToRoutes[stop] << it
+            }
+        }
+
+        matrix = [:].withDefault { [:].withDefault { [].toSet() } }
+
+        stops.each { Stop from ->
+            def rts = stopsToRoutes[from]
+            rts.collect {r -> r.after(from)}.flatten().toSet().each { Stop to ->
+                matrix[from][to] = stopsToRoutes[from].intersect(stopsToRoutes[to]).findAll{it.isAfter(from, to)}
+            }
+        }
     }
 
     Map<Stop, Map<Stop, Double>> prepareWalkMatrix() {

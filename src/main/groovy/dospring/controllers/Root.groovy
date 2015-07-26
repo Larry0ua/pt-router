@@ -36,10 +36,10 @@ class Root {
             case null:
             case 0:
                 return routeService.findSimpleRoute(from, to)
-            case 1:
+            /*case 1:
                 return routeService.findRouteWithOneSwitchWithGaps(from, to)
             case 2:
-                return routeService.findRouteWithTwoSwitchesAndGaps(from, to)
+                return routeService.findRouteWithTwoSwitchesAndGaps(from, to)*/
             default:
                 return null
         }

@@ -32,7 +32,7 @@ class RouteSimplifierService {
             List<RouteChunk> copy2 = r2.routeChunks.findAll { it.routes }
             if (copy1.size() == copy2.size()) {
                 def larger1st = (0..<copy1.size()).every { Integer idx -> copy1[idx].routes.containsAll(copy2[idx].routes) }
-                def larger2nd = (0..<copy1.size()).every { Integer idx -> copy2[idx].routes.containsAll(copy1[idx].routes) }
+                def larger2nd = (0..<copy2.size()).every { Integer idx -> copy2[idx].routes.containsAll(copy1[idx].routes) }
                 if (larger1st || larger2nd) {
                     def r1time = routeTimes[r1]
                     def r2time = routeTimes[r2]
@@ -46,6 +46,14 @@ class RouteSimplifierService {
             }
         }).collect { group -> group.max { it.routeChunks.collect {it.routes.size()}.findAll{it}.inject(1, {a,b->a*b}) } }
 
+        /*def routes4 = groupBySimilarity(routes3, { CalculatedRoute r1, CalculatedRoute r2 ->
+            List<RouteChunk> copy1 = r1.routeChunks.findAll { it.routes }
+            List<RouteChunk> copy2 = r2.routeChunks.findAll { it.routes }
+            if (copy1.size() == copy2.size() && copy1.size() > 0) {
+                 return copy1.subList(0, copy1.size()-1) == copy2.subList(0, copy2.size()-1)
+            }
+            false
+        }).collect { group -> }*/
         routes3
     }
 

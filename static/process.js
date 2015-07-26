@@ -15,9 +15,9 @@ $(document).ready(function() {
         if (start) {
             end = m;
             end.bindPopup(
-            "<a href='#' onclick='findRoutes(0)'>Find route</a><br>"+
+            "<a href='#' onclick='findRoutes(0)'>Find route</a><br>"/*+
             "<a href='#' onclick='findRoutes(1)'>Find route (1 switch)</a><br>"+
-            "<a href='#' onclick='findRoutes(2)'>Find route (2 switches)</a>");
+            "<a href='#' onclick='findRoutes(2)'>Find route (2 switches)</a>"*/);
         } else {
             start = m;
             start.bindPopup("Start");
@@ -43,23 +43,24 @@ function process(data) {
     }
     for (var i=0;i<data.length;i++) {
         var route = data[i]
-        var item = $("<div class='item'>")
+        var item = $('<div class="item">')
         // TODO: escape data strings before adding to html
         for (var j=0; j<route.routeChunks.length; j++) {
             var chunk = route.routeChunks[j]
             if (chunk.routes.length == 0) {
-                item.append('Walk ' + distance(chunk.start, chunk.end) + ' m<br>')
+                item.append($('<span/>').text('Walk ' + distance(chunk.start, chunk.end) + ' m'))
             } else {
                 s = 'Use '
                 s += chunk.routes[0].name
                 for (var t=1;t<chunk.routes.length;t++) {
                     s += ' or ' + chunk.routes[t].name
                 }
-                s += ' from platform ' + chunk.start.name + ' to platform ' + chunk.end.name + '<br>'
-                item.append(s)
+                s += ' from platform ' + chunk.start.name + ' to platform ' + chunk.end.name
+                item.append($('<span/>').text(s))
             }
+            item.append($('<br>'))
         }
-        item.append("<hr>");
+        item.append($('<hr>'))
         item.on('click', i, showRoute);
         $("#main").append(item)
     }

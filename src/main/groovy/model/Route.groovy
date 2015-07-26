@@ -53,4 +53,13 @@ class Route {
     boolean contains(Stop p) {
         platforms.contains(p)
     }
+
+    List<Stop> after(Stop stop) {
+        int idx = platforms.indexOf(stop)
+        if (idx >= 0) {
+            platforms.subList(idx + 1, platforms.size())
+        } else {
+            []
+        }
+    }
 }

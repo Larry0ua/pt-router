@@ -21,7 +21,7 @@ class StopService {
             return null
         }
 
-        def nearestStop = transportStorage.stops.min { it - start }
+        def nearestStop = transportStorage.stopsStorage.getNear(start).min { it - start }
         if (start - nearestStop > maxDistance) {
             null
         } else {
@@ -35,6 +35,6 @@ class StopService {
             return []
         }
 
-        transportStorage.stops.findAll{it - start < maxDistance}.sort{it - start}
+        transportStorage.stopsStorage.getNear(start).findAll{it - start < maxDistance}.sort{it - start}
     }
 }
